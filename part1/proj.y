@@ -32,6 +32,14 @@ typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING ;
 
 id: id","IDEN | IDEN ;
 
+if: IF"("condition")" "{"/*Write Body of nested statment */ "}" |IF"("condition")" statment |IF"("condition")" "{"/*Write Body of nested statment */ "}" else "{"/*Write Body of nested statment */ "}" | |IF"("condition")" statment else statment ; 
+
+condition ; 
+statment;
+else: ;
+for: ;
+while: ;
+
 %%
 #include "lex.yy.c"
 main()
