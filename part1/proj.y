@@ -36,7 +36,7 @@ if: 	IF"("condition")" "{"/*nested statment */ "}"
 	|IF"("condition")" statment
 	|IF"("condition")" "{"/*Nested statment */ "}" else "{"/*nested statment */ "}"
 	|IF"("condition")" statment else statment ; 
-condition value IS_EQ value
+condition: value IS_EQ value
 	|value BIGGER value
 	|value BIG_EQ value
 	|value SMALLER value
