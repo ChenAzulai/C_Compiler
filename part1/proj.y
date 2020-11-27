@@ -16,7 +16,7 @@
 
 s: code {printf("OK!\n");};
 
-code: var|function|if|for|while;
+code: var|function|if|while;
 
 function: FUNC IDEN"("paramList")" RETURN values";";
 
@@ -47,7 +47,6 @@ while: ("expression")" body | ("expression")" statment;
 expression: ;
 statment: ;
 body: ;
-for: ;
 
 
 %%
