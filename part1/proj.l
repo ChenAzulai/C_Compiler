@@ -19,7 +19,7 @@
 "func"	{return FUNC;}
 "proc"	{return PROC;}
 "return" {return RETURN;}
-"null"	{return NULL;}
+"null"	{return NULL1;}
 "&&"	{return AND;}
 "/"	{return DIV;}
 "="	{return EQUAL;}
