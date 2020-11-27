@@ -36,12 +36,13 @@ if: 	IF"("condition")" body
 	|IF"("condition")" statment
 	|IF"("condition")" body ELSE body 
 	|IF"("condition")" statment ELSE statment ; 
-condition: value IS_EQ value
-	|value BIGGER value
-	|value BIG_EQ value
-	|value SMALLER value
-	|value DIFF value
-	|value ;
+	
+condition: 	value IS_EQ value
+		|value BIGGER value
+		|value BIG_EQ value
+		|value SMALLER value
+		|value DIFF value
+		|value ;
 	
 statment: ;
 else: statment | body ;
