@@ -45,7 +45,7 @@ condition: 	value IS_EQ value
 		|value ;
 	
 statment: ;
-else: statment | body ;
+body ;
 for: ;
 while: ;
 
