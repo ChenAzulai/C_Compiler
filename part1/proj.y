@@ -43,7 +43,7 @@ condition: value IS_EQ value
 	|value DIFF value
 	|value ;
 	
-statment;
+statment: ;
 else: ;
 for: ;
 while: ;
