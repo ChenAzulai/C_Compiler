@@ -1,0 +1,4 @@
+var x,y,z: char*;
+var t: int;
+/% blah %/
+var a,b : string;
