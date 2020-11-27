@@ -43,11 +43,12 @@ condition: 	value IS_EQ value
 		|value SMALLER value
 		|value DIFF value
 		|value ;
-	
+while: ("expression")" body | ("expression")" statment;
+expression: ;
 statment: ;
 body: ;
 for: ;
-while: ;
+
 
 %%
 #include "lex.yy.c"
