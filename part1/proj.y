@@ -32,10 +32,10 @@ typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
 
 id: id","IDEN | IDEN ;
 
-if: 	IF"("condition")" "{"/*nested statment */ "}" 
+if: 	IF"("condition")" body 
 	|IF"("condition")" statment
-	|IF"("condition")" "{"/*Nested statment */ "}" else
-	|IF"("condition")" statment else ; 
+	|IF"("condition")" body ELSE body 
+	|IF"("condition")" statment ELSE statment ; 
 condition: value IS_EQ value
 	|value BIGGER value
 	|value BIG_EQ value
