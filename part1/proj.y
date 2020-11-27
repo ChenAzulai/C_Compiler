@@ -28,7 +28,7 @@ var: var declare | declare ;
 
 declare: VAR id ":" typeOfVar ";" ;
 
-typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING ;
+typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
 
 id: id","IDEN | IDEN ;
 
