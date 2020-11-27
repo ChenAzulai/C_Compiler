@@ -18,11 +18,11 @@ s: code {printf("OK!\n");};
 
 code: var|function|if|while;
 
-function: FUNC IDEN"("paramList")" RETURN values";";
+function: FUNC IDEN"("paramList")" RETURN value";";
 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
-values: NUM|REAL_NUM|CONST_CHAR|CONST_STRING ;
+value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING ;
 
 var: var declare | declare ;
 
