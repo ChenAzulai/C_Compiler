@@ -32,9 +32,9 @@ typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
 
 id: id","IDEN | IDEN ;
 
-if: 	IF"("condition")" body 
+if: 	IF"("condition")" "{"body"}" 
 	|IF"("condition")" statment
-	|IF"("condition")" body ELSE body 
+	|IF"("condition")" "{"body"}"  ELSE "{"body"}"  
 	|IF"("condition")" statment ELSE statment ; 
 	
 condition: 	value IS_EQ value
@@ -43,7 +43,25 @@ condition: 	value IS_EQ value
 		|value SMALLER value
 		|value DIFF value
 		|value ;
-while: ("expression")" body | ("expression")" statment;
+while: "while" ("expression")" "{"body"}"  | ("expression")" statment;
+
+assign: IDEN EQUAL values ";"
+	| IDEN EQUAL IDEN ";"
+	|IDEN EQUAL mathExp;
+
+mathExp: elem
+	| mathExp PLUS mathExp
+	| mathExp MINUS mathExp
+	| mathExp MUL mathExp
+	| mathExp DIV mathExp ;
+
+elem: values
+	|TRUE
+	|FALSE
+	|NULL
+	|IDEN
+	|HEX_NUM;
+
 expression: ;
 statment: ;
 body: ;
