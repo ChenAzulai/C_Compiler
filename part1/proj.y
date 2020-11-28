@@ -43,7 +43,7 @@ condition: 	value IS_EQ value
 		|value SMALLER value
 		|value DIFF value
 		|value ;
-while: "WHILE" ("expression")" "{"body"}"  | ("expression")" statment;
+while: WHILE ("expression")" "{"body"}"  | ("expression")" statment;
 
 assign: IDEN EQUAL values ";"
 	| IDEN EQUAL IDEN ";"
