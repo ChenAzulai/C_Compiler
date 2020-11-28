@@ -25,7 +25,7 @@ function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
-value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM ;
+value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM|TRUE|FALSE ;
 
 var: var declare | declare ;
 
