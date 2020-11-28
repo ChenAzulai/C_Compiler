@@ -16,13 +16,16 @@
 
 s: code {printf("OK!\n");};
 
-code: var|function|if|while;
+code: var
+	|function
+	|function code
+	|assign;
 
-function: FUNC IDEN"("paramList")" RETURN value";";
+function: FUNC IDEN"("paramList")" RETURN typeOfVar "{"body"}";
 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
-value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING ;
+value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM ;
 
 var: var declare | declare ;
 
@@ -33,9 +36,9 @@ typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
 id: id","IDEN | IDEN ;
 
 if: 	IF"("condition")" "{"body"}" 
-	|IF"("condition")" statment
-	|IF"("condition")" "{"body"}"  ELSE "{"body"}"  
-	|IF"("condition")" statment ELSE statment ; 
+	|IF"("condition")" assign
+	|IF"("condition")" "{"body"}" ELSE "{"body"}" 
+	|IF"("condition")" assign ELSE assign ; 
 	
 condition: 	value IS_EQ value
 		|value BIGGER value
@@ -43,7 +46,9 @@ condition: 	value IS_EQ value
 		|value SMALLER value
 		|value DIFF value
 		|value ;
-while: WHILE ("expression")" "{"body"}"  | ("expression")" statment;
+		
+while: WHILE "("condition")" "{"body"}" 
+	|WHILE "("condition")" assign;
 
 assign: IDEN EQUAL values ";"
 	| IDEN EQUAL IDEN ";"
@@ -59,12 +64,18 @@ elem: values
 	|TRUE
 	|FALSE
 	|NULL1
-	|IDEN
-	|HEX_NUM;
+	|IDEN;
 
-expression: ;
-statment: ;
-body: ;
+body: nestedStmt
+	|;
+
+nestedStmt: statement
+	|nestedStmt statement;
+
+statement: assign
+	|if
+	|while;
+
 
 
 %%
