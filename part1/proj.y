@@ -21,7 +21,7 @@ code: var
 	|function code
 	|assign;
 
-function: FUNC IDEN"("paramList")" RETURN typeOfVar "{"body"}";
+function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
@@ -35,9 +35,9 @@ typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
 
 id: id","IDEN | IDEN ;
 
-if: 	IF"("condition")" "{"body"}" 
+if: 	IF"("condition")" body 
 	|IF"("condition")" assign
-	|IF"("condition")" "{"body"}" ELSE "{"body"}" 
+	|IF"("condition")" body ELSE body  
 	|IF"("condition")" assign ELSE assign ; 
 	
 condition: 	value IS_EQ value
@@ -47,7 +47,7 @@ condition: 	value IS_EQ value
 		|value DIFF value
 		|value ;
 		
-while: WHILE "("condition")" "{"body"}" 
+while: WHILE "("condition")" body
 	|WHILE "("condition")" assign;
 
 assign: IDEN EQUAL values ";"
@@ -66,15 +66,19 @@ elem: values
 	|NULL1
 	|IDEN;
 
-body: nestedStmt
-	|;
-
+body: "{" nestedStmt "}"
+	|"{""}";
+	
 nestedStmt: statement
+	|body
+	|nestedStmt body
 	|nestedStmt statement;
 
 statement: assign
 	|if
-	|while;
+	|while
+	|function
+	|declare;
 
 
 
