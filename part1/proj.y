@@ -50,7 +50,7 @@ condition: 	value IS_EQ value
 while: WHILE "("condition")" body
 	|WHILE "("condition")" assign;
 
-assign: IDEN EQUAL values ";"
+assign: IDEN EQUAL value ";"
 	| IDEN EQUAL IDEN ";"
 	|IDEN EQUAL mathExp;
 
@@ -60,7 +60,7 @@ mathExp: elem
 	| mathExp MUL mathExp
 	| mathExp DIV mathExp ;
 
-elem: values
+elem: 
 	|TRUE
 	|FALSE
 	|NULL1
