@@ -66,7 +66,8 @@ elem: values
 	|NULL1
 	|IDEN;
 
-body: "{" nestedStmt "}"
+body: "{" nestedStmt return"}"
+	|"{"return"}"
 	|"{""}";
 	
 nestedStmt: statement
@@ -80,7 +81,8 @@ statement: assign
 	|function
 	|declare;
 
-
+return:  RETURN mathExp ";"
+	|RETURN ";";
 
 %%
 #include "lex.yy.c"
