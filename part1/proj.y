@@ -58,7 +58,7 @@ mathExp: elem
 elem: values
 	|TRUE
 	|FALSE
-	|NULL
+	|NULL1
 	|IDEN
 	|HEX_NUM;
 
