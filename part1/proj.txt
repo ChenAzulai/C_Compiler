@@ -1,7 +1,6 @@
-/%var x,y,z: char*;
-var t: int;
-/% blah %/
-var a,b : string;%/
 func foo() return int {}
 func goo()return int {x=9;}
-func too()return int {if (5>8) x=3+2;}
+func too()return int {if (5>8) x=3;}
+/%var x,y,z: char*;
+var t: int;
+var a,b : string;%/
