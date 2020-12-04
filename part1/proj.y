@@ -34,7 +34,7 @@ code: var
 	|assign;
 
 function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
-proc 
+proc: 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
 value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM|TRUE|FALSE ;
