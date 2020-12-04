@@ -61,14 +61,14 @@ id: id","IDEN  /*not sure*/
 
 if: 	IF"("condition")" body {$$=mknode("IF",$2,$3);}
 	|IF"("condition")" assign {$$=mknode("IF",$2,$3);}
-	|IF"("condition")" body ELSE body {$$=mknode("IF",$2,mknode("ELSE",$3,$5);} /*not sure */
-	|IF"("condition")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5);};/*not sure */
+	|IF"("condition")" body ELSE body {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}  /*not sure */
+	|IF"("condition")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}; /*not sure */
 	
 condition: 	value IS_EQ value {$$=mknode("==",$1,$3);}
 		|value BIGGER value {$$=mknode(">",$1,$3);}
 		|value BIG_EQ value {$$=mknode(">=",$1,$3);}
 		|value SMALLER value {$$=mknode("<",$1,$3);}
-		|value SMALL_EQ value {$$=mknode("<=",$1,NULL,$3);}
+		|value SMALL_EQ value {$$=mknode("<=",$1,$3);}
 		|value DIFF value {$$=mknode("!=",$1,$3);}
 		/*| value AND value -- we need to implement if((1>2)and x=3) for example
 		| value OR value*/
@@ -82,10 +82,10 @@ assign: IDEN EQUAL value ";"
 	|IDEN EQUAL mathExp;
 
 mathExp: elem
-	| mathExp PLUS mathExp {&&=mknode=("+",$1,$3);}
-	| mathExp MINUS mathExp {&&=mknode=("-",$1,$3);}
-	| mathExp MUL mathExp {&&=mknode=("*",$1,$3);}
-	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);}
+	| mathExp PLUS mathExp {&&=mknode("+",$1,$3);}
+	| mathExp MINUS mathExp {&&=mknode("-",$1,$3);}
+	| mathExp MUL mathExp {&&=mknode("*",$1,$3);}
+	| mathExp DIV mathExp  {&&=mknode("/",$1,$3);};
 
 elem: 
 	|TRUE {$$ = mknode ("true", NULL, NULL);}
