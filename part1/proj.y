@@ -54,15 +54,15 @@ typeOfVar:
 	|CHAR_P {$$=mknode(yytext,NULL,NULL);}
 	|REAL_P {$$=mknode(yytext,NULL,NULL);}
 	|STRING {$$=mknode(yytext,NULL,NULL);}
-	|STRING "[" NUM "]" ; {$$=mknode(yytext,yytext,NULL);}; /*not sure if it is right */
+	|STRING "[" NUM "]" {$$=mknode(yytext,yytext,NULL);}; /*not sure if it is right */
 
 id: id","IDEN  /*not sure*/
 	|IDEN {$$=mknode(yytext,NULL,NULL);};
 
-if: 	IF"("condition")" body 
-	|IF"("condition")" assign
-	|IF"("condition")" body ELSE body  
-	|IF"("condition")" assign ELSE assign ; 
+if: 	IF"("condition")" body {$$=mknode("IF",$2,$3);}
+	|IF"("condition")" assign {$$=mknode("IF",$2,$3);}
+	|IF"("condition")" body ELSE body {$$=mknode("IF",$2,mknode("ELSE",$3,$5);} /*not sure */
+	|IF"("condition")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5);};/*not sure */
 	
 condition: 	value IS_EQ value {$$=mknode("==",$1,$3);}
 		|value BIGGER value {$$=mknode(">",$1,$3);}
