@@ -67,15 +67,15 @@ assign: IDEN EQUAL value ";"
 	|IDEN EQUAL mathExp;
 
 mathExp: elem
-	| mathExp PLUS mathExp
-	| mathExp MINUS mathExp
-	| mathExp MUL mathExp
-	| mathExp DIV mathExp ;
+	| mathExp PLUS mathExp {&&=mknode=("+",$1,$3)}
+	| mathExp MINUS mathExp {&&=mknode=("-",$1,$3)
+	| mathExp MUL mathExp {&&=mknode=("*",$1,$3)
+	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);
 
 elem: 
-	|TRUE
-	|FALSE
-	|NULL1
+	|TRUE {$$ = mknode ("true", NULL, NULL); }
+	|FALSE {$$ = mknode ("false", NULL, NULL); }
+	|NULL1 {$$ = mknode (NULL, NULL, NULL); }
 	|IDEN;
 
 body: "{" nestedStmt return"}"
