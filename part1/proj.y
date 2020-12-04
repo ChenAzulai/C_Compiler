@@ -78,12 +78,10 @@ elem:
 	|NULL1 {$$ = mknode (NULL, NULL, NULL);}
 	|IDEN;
 
-body : function | proc
-
-/*body: "{" nestedStmt return"}"
+body: "{" nestedStmt return"}"
 	|"{"return"}"
 	|"{""}";
-*/	
+	
 nestedStmt: statement
 	|body
 	|nestedStmt body
@@ -93,7 +91,8 @@ statement: assign
 	|if
 	|while
 	|function
-	|declare;
+	|declare
+	|proc;
 
 return:  RETURN mathExp ";"
 	|RETURN ";";
