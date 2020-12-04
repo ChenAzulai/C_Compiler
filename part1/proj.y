@@ -2,6 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+typedef struct node{
+    char *token;
+    struct node *left;
+    struct node *right;
+} node;
+
+
+node *mknode (char *token, node *left, node *right);
+void printtree (node *tree);
+/*int yyerror(char* error); -- add this after adding counter*/
+
 %}
 
 %token CHAR INT REAL BOOL INT_P CHAR_P REAL_P STRING VAR FUNC PROC RETURN IF ELSE WHILE NULL1
@@ -90,11 +102,21 @@ main()
 {
 	return yyparse();
 }
-
-int yyerror()
+node *mknode (char *token, node *left, node *right)
 {
-	printf("Suck IT\n");
-	return 0;
+node* newnode=(node*)malloc(sizeof(node));
+char* newstr=(char*)malloc(sizeof(token)+1);
+strcpy(newstr,token);
+newnode->left=left;
+newnode->right=right;
+newnode->token=token;
+
+return newnode;
 }
 
-
+int yyerror(/*char* error*/)
+{
+	/*printf ("%s: at line %d found token [%s]\n",  error,counter, yytext); -- add a counter*/ 
+	printf("Doesnt Work.........!!!!");
+	return 0;
+}
