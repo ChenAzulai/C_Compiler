@@ -34,7 +34,9 @@ code: var
 	|assign;
 
 function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
-proc: FUNC IDEN"("paramList")" body;
+
+proc: PROC IDEN"("paramList")" body_proc;
+
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
 value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM|TRUE|FALSE ;
@@ -82,11 +84,19 @@ body: "{" nestedStmt return"}"
 	|"{"return"}"
 	|"{""}";
 	
+body_proc: "{"nestedStmt_proc"}"
+	|"{""}";
+
 nestedStmt: statement
 	|body
 	|nestedStmt body
 	|nestedStmt statement;
-
+	
+nestedStmt_proc: statement
+	|body_proc
+	|nestedStmt_proc body_proc
+	|nestedStmt_proc statement;
+	
 statement: assign
 	|if
 	|while
