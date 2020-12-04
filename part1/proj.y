@@ -70,7 +70,7 @@ mathExp: elem
 	| mathExp PLUS mathExp {&&=mknode=("+",$1,$3);}
 	| mathExp MINUS mathExp {&&=mknode=("-",$1,$3);}
 	| mathExp MUL mathExp {&&=mknode=("*",$1,$3);}
-	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);;
+	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);}
 
 elem: 
 	|TRUE {$$ = mknode ("true", NULL, NULL);}
