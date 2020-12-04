@@ -95,8 +95,7 @@ statement: assign
 	|proc;
 
 return: RETURN mathExp ";"
-	|RETURN ";"
-	|;
+	|RETURN ";";
 
 %%
 #include "lex.yy.c"
