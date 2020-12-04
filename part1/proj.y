@@ -54,11 +54,14 @@ if: 	IF"("condition")" body
 	|IF"("condition")" body ELSE body  
 	|IF"("condition")" assign ELSE assign ; 
 	
-condition: 	value IS_EQ value
-		|value BIGGER value
-		|value BIG_EQ value
-		|value SMALLER value
-		|value DIFF value
+condition: 	value IS_EQ value {$$=mknode("==",$1,$3);}
+		|value BIGGER value {$$=mknode(">",$1,$3);}
+		|value BIG_EQ value {$$=mknode(">=",$1,$3);}
+		|value SMALLER value {$$=mknode("<",$1,$3);}
+		|value SMALL_EQ value {$$=mknode("<=",$1,NULL,$3);}
+		|value DIFF value {$$=mknode("!=",$1,$3);}
+		/*| value AND value -- we need to implement if((1>2)and x=3) for example
+		| value OR value*/
 		|value ;
 		
 while: WHILE "("condition")" body
