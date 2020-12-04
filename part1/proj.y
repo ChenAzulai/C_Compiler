@@ -34,7 +34,7 @@ code: var
 	|assign;
 
 function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
-
+proc 
 paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
 
 value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM|TRUE|FALSE ;
@@ -67,21 +67,23 @@ assign: IDEN EQUAL value ";"
 	|IDEN EQUAL mathExp;
 
 mathExp: elem
-	| mathExp PLUS mathExp {&&=mknode=("+",$1,$3)}
-	| mathExp MINUS mathExp {&&=mknode=("-",$1,$3)
-	| mathExp MUL mathExp {&&=mknode=("*",$1,$3)
-	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);
+	| mathExp PLUS mathExp {&&=mknode=("+",$1,$3);}
+	| mathExp MINUS mathExp {&&=mknode=("-",$1,$3);}
+	| mathExp MUL mathExp {&&=mknode=("*",$1,$3);}
+	| mathExp DIV mathExp  {&&=mknode=("/",$1,$3);;
 
 elem: 
-	|TRUE {$$ = mknode ("true", NULL, NULL); }
-	|FALSE {$$ = mknode ("false", NULL, NULL); }
-	|NULL1 {$$ = mknode (NULL, NULL, NULL); }
+	|TRUE {$$ = mknode ("true", NULL, NULL);}
+	|FALSE {$$ = mknode ("false", NULL, NULL);}
+	|NULL1 {$$ = mknode (NULL, NULL, NULL);}
 	|IDEN;
 
-body: "{" nestedStmt return"}"
+body : function | proc
+
+/*body: "{" nestedStmt return"}"
 	|"{"return"}"
 	|"{""}";
-	
+*/	
 nestedStmt: statement
 	|body
 	|nestedStmt body
