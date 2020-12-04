@@ -45,9 +45,19 @@ var: var declare | declare ;
 
 declare: VAR id ":" typeOfVar ";" ;
 
-typeOfVar: CHAR|INT|REAL|BOOL|INT_P|CHAR_P|REAL_P|STRING|STRING "[" NUM "]" ;
+typeOfVar: 
+        CHAR {$$=mknode(yytext,NULL,NULL);}
+	|INT {$$=mknode(yytext,NULL,NULL);}
+	|REAL {$$=mknode(yytext,NULL,NULL);}
+	|BOOL {$$=mknode(yytext,NULL,NULL);}
+	|INT_P {$$=mknode(yytext,NULL,NULL);}
+	|CHAR_P {$$=mknode(yytext,NULL,NULL);}
+	|REAL_P {$$=mknode(yytext,NULL,NULL);}
+	|STRING {$$=mknode(yytext,NULL,NULL);}
+	|STRING "[" NUM "]" ; {$$=mknode(yytext,yytext,NULL);}; /*not sure if it is right */
 
-id: id","IDEN | IDEN ;
+id: id","IDEN  /*not sure*/
+	|IDEN {$$=mknode(yytext,NULL,NULL);};
 
 if: 	IF"("condition")" body 
 	|IF"("condition")" assign
