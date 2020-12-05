@@ -1,6 +1,24 @@
+func fee(l,m,n:int) return     
+{
+	{
+		{
+			var t: int;
+			func foo() return int {while (7!=9){var a,b : string; return;} return x;}
+			{}
+		}
+	}
+	return true;
+}
+/%proc fee(a,b:int){
+	func fee(l,m,n:int) return bool
+		{ 
+		return true;
+		}
+}
 func foo() return int {while (7!=9){var a,b : string; return;} return x;}
-/%func goo()return int {x=9;}
+func goo()return int {x=9;}
 func too()return int {if (5>8) x= 3;}
 var x,y,z: char*;
 var t: int;
-var a,b : string;%/
+var a,b : string;
+how do we control which var already declared?!%/
