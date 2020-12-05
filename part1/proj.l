@@ -1,6 +1,7 @@
 %{
 #include<stdio.h>
 #include "y.tab.h"
+int counter=1;
 %}
 %x C_COMMENT
 %%
