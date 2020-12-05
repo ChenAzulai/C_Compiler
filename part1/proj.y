@@ -29,15 +29,15 @@ int yyerror(char* error);
 
 s: code {printf("OK!\n");};
 
-code: code_c proc_main
-	|proc_main;
-
-code_c: code_c function
-	|code_c proc
-	|proc
+code: code_c proc_main {$$=mknode("CODE",$1,$2)}
+	|proc_main {$$=mknode("CODE",$1,NULL)};
+	
+code_c: code_c function {$$=mknode("",$1,$2)};
+	|code_c proc {$$=mknode("",$1,$2)}
+	|proc 
 	|function;
 
-proc_main: PROC MAIN body_proc;
+proc_main: PROC MAIN body_proc {$$=mknode("Main()",$3)};;
 
 function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body; {$$=mknode("func",$4,mknode("ret",$7,$8));};
 
