@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define YYSTYPE struct node *
 typedef struct node{
-    char *token;
-    struct node *left;
-    struct node *right;
+    char* token;
+    struct node* left;
+    struct node* right;
 } node;
 
 
@@ -16,7 +16,7 @@ void printtree (node *tree);
 
 %}
 
-%token CHAR INT REAL BOOL INT_P CHAR_P REAL_P STRING VAR FUNC PROC RETURN IF ELSE WHILE NULL1
+%token CHAR INT REAL IF BOOL INT_P CHAR_P REAL_P STRING VAR FUNC PROC RETURN  ELSE WHILE NULL1
 %token AND DIV EQUAL IS_EQ BIGGER BIG_EQ SMALLER SMALL_EQ MINUS EX_MARK DIFF OR PLUS MUL ADDS POINTER
 %token TRUE FALSE 
 %token NUM HEX_NUM REAL_NUM CONST_CHAR CONST_STRING IDEN
@@ -31,7 +31,8 @@ s: code {printf("OK!\n");};
 code: var
 	|function
 	|function code
-	|assign;
+	|assign
+	|proc;
 
 function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
 
@@ -46,15 +47,15 @@ var: var declare | declare ;
 declare: VAR id ":" typeOfVar ";" ;
 
 typeOfVar: 
-        CHAR {$$=mknode(yytext,NULL,NULL);}
-	|INT {$$=mknode(yytext,NULL,NULL);}
-	|REAL {$$=mknode(yytext,NULL,NULL);}
-	|BOOL {$$=mknode(yytext,NULL,NULL);}
-	|INT_P {$$=mknode(yytext,NULL,NULL);}
-	|CHAR_P {$$=mknode(yytext,NULL,NULL);}
-	|REAL_P {$$=mknode(yytext,NULL,NULL);}
-	|STRING {$$=mknode(yytext,NULL,NULL);}
-	|STRING "[" NUM "]" {$$=mknode(yytext,yytext,NULL);}; /*not sure if it is right */
+        CHAR {$$=mknode("int",NULL,NULL);}
+	|INT {$$=mknode("int",NULL,NULL);}
+	|REAL {$$=mknode("real",NULL,NULL);}
+	|BOOL {$$=mknode("bool",NULL,NULL);}
+	|INT_P {$$=mknode("int*",NULL,NULL);}
+	|CHAR_P {$$=mknode("char*",NULL,NULL);}
+	|REAL_P {$$=mknode("real*",NULL,NULL);}
+	|STRING {$$=mknode("string",NULL,NULL);}
+	|STRING "["NUM"]" {$$=mknode("string",$2,NULL);}; /*not sure if it is right */
 
 id: id","IDEN  /*not sure*/
 	|IDEN {$$=mknode(yytext,NULL,NULL);};
@@ -78,19 +79,19 @@ while: WHILE "("condition")" body
 	|WHILE "("condition")" assign;
 
 assign: IDEN EQUAL value ";"
-	| IDEN EQUAL IDEN ";"
+	|IDEN EQUAL IDEN ";"
 	|IDEN EQUAL mathExp;
 
 mathExp: elem
-	| mathExp PLUS mathExp {&&=mknode("+",$1,$3);}
-	| mathExp MINUS mathExp {&&=mknode("-",$1,$3);}
-	| mathExp MUL mathExp {&&=mknode("*",$1,$3);}
-	| mathExp DIV mathExp  {&&=mknode("/",$1,$3);};
+	| mathExp PLUS mathExp {$$=mknode("+",$1,$3);}
+	| mathExp MINUS mathExp {$$=mknode("-",$1,$3);}
+	| mathExp MUL mathExp {$$=mknode("*",$1,$3);}
+	| mathExp DIV mathExp {$$=mknode("/",$1,$3);};
 
 elem: 
-	|TRUE {$$ = mknode ("true", NULL, NULL);}
-	|FALSE {$$ = mknode ("false", NULL, NULL);}
-	|NULL1 {$$ = mknode (NULL, NULL, NULL);}
+	|TRUE {$$ = mknode("true", NULL, NULL);}
+	|FALSE {$$ = mknode("false", NULL, NULL);}
+	|NULL1 {$$ = mknode(NULL, NULL, NULL);}
 	|IDEN;
 
 body: "{" nestedStmt return"}"
@@ -105,7 +106,8 @@ nestedStmt: statement
 	|nestedStmt body
 	|nestedStmt statement;
 	
-nestedStmt_proc: statement
+nestedStmt_proc: 
+         statement
 	|body_proc
 	|nestedStmt_proc body_proc
 	|nestedStmt_proc statement;
@@ -126,7 +128,7 @@ main()
 {
 	return yyparse();
 }
-node *mknode (char *token, node *left, node *right)
+node *mknode(char *token, node *left, node *right)
 {
 node* newnode=(node*)malloc(sizeof(node));
 char* newstr=(char*)malloc(sizeof(token)+1);
