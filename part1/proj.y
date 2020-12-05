@@ -16,8 +16,8 @@ void printtree (node *tree);
 
 %}
 
-%token CHAR INT REAL IF BOOL INT_P CHAR_P REAL_P STRING VAR FUNC PROC RETURN  ELSE WHILE NULL1
-%token AND DIV EQUAL IS_EQ BIGGER BIG_EQ SMALLER SMALL_EQ MINUS EX_MARK DIFF OR PLUS MUL ADDS POINTER
+%token CHAR INT REAL BOOL INT_P CHAR_P REAL_P STRING VAR FUNC PROC RETURN IF ELSE WHILE
+%token AND DIV EQUAL IS_EQ BIGGER BIG_EQ SMALLER SMALL_EQ MINUS EX_MARK DIFF OR PLUS MUL ADDS POINTER NULL1
 %token TRUE FALSE 
 %token NUM HEX_NUM REAL_NUM CONST_CHAR CONST_STRING IDEN
 %token EQUAL IS_EQ BIGGER BIG_EQ SMALLER SMALL_EQ DIFF
@@ -38,16 +38,18 @@ function: FUNC IDEN"("paramList")" RETURN typeOfVar body;
 
 proc: PROC IDEN"("paramList")" body_proc;
 
-paramList: paramList ";" id ":" typeOfVar |id ":" typeOfVar | ; 
+paramList: paramList ";" id ":" typeOfVar 
+	|id ":" typeOfVar 
+	| ; 
 
-value: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM|TRUE|FALSE ;
+values: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM ;
 
-var: var declare | declare ;
+var: var declare 
+	| declare ;
 
 declare: VAR id ":" typeOfVar ";" ;
 
-typeOfVar: 
-        CHAR {$$=mknode("int",NULL,NULL);}
+typeOfVar: CHAR {$$=mknode("int",NULL,NULL);}
 	|INT {$$=mknode("int",NULL,NULL);}
 	|REAL {$$=mknode("real",NULL,NULL);}
 	|BOOL {$$=mknode("bool",NULL,NULL);}
@@ -55,63 +57,71 @@ typeOfVar:
 	|CHAR_P {$$=mknode("char*",NULL,NULL);}
 	|REAL_P {$$=mknode("real*",NULL,NULL);}
 	|STRING {$$=mknode("string",NULL,NULL);}
-	|STRING "["NUM"]" {$$=mknode("string",$2,NULL);}; /*not sure if it is right */
+	|STRING "["NUM"]" {$$=mknode("string",$2,NULL);};
 
-id: id","IDEN  /*not sure*/
-	|IDEN {$$=mknode(yytext,NULL,NULL);};
+id: id "," IDEN 
+	| IDEN {$$=mknode(yytext,NULL,NULL);};
 
 if: 	IF"("condition")" body {$$=mknode("IF",$2,$3);}
 	|IF"("condition")" assign {$$=mknode("IF",$2,$3);}
 	|IF"("condition")" body ELSE body {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}  /*not sure */
 	|IF"("condition")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}; /*not sure */
+ 
 	
-condition: 	value IS_EQ value {$$=mknode("==",$1,$3);}
-		|value BIGGER value {$$=mknode(">",$1,$3);}
-		|value BIG_EQ value {$$=mknode(">=",$1,$3);}
-		|value SMALLER value {$$=mknode("<",$1,$3);}
-		|value SMALL_EQ value {$$=mknode("<=",$1,$3);}
-		|value DIFF value {$$=mknode("!=",$1,$3);}
-		/*| value AND value -- we need to implement if((1>2)and x=3) for example
-		| value OR value*/
-		|value ;
-		
-while: WHILE "("condition")" body
+condition: 	values IS_EQ values {$$=mknode("==",$1,$3);}
+		|values BIGGER values {$$=mknode(">",$1,$3);}
+		|values BIG_EQ values {$$=mknode(">=",$1,$3);}
+		|values SMALLER values {$$=mknode("<",$1,$3);}
+		|values SMALL_EQ values {$$=mknode("<=",$1,$3);}
+		|values DIFF values {$$=mknode("!=",$1,$3);}
+		|values ;
+
+while: WHILE "("condition")" body 
 	|WHILE "("condition")" assign;
 
-assign: IDEN EQUAL value ";"
+assign: IDEN EQUAL mathExp
+	|IDEN EQUAL values ";"
 	|IDEN EQUAL IDEN ";"
-	|IDEN EQUAL mathExp;
+	|IDEN EQUAL ADDS IDEN ";"
+	|IDEN EQUAL POINTER IDEN ";";
 
 mathExp: elem
 	| mathExp PLUS mathExp {$$=mknode("+",$1,$3);}
 	| mathExp MINUS mathExp {$$=mknode("-",$1,$3);}
 	| mathExp MUL mathExp {$$=mknode("*",$1,$3);}
-	| mathExp DIV mathExp {$$=mknode("/",$1,$3);};
+	| mathExp DIV mathExp {$$=mknode("/",$1,$3);}
+	| mathExp OR mathExp
+	| mathExp AND mathExp;
 
-elem: 
+elem: values
 	|TRUE {$$ = mknode("true", NULL, NULL);}
 	|FALSE {$$ = mknode("false", NULL, NULL);}
 	|NULL1 {$$ = mknode(NULL, NULL, NULL);}
 	|IDEN;
 
 body: "{" nestedStmt return"}"
-	|"{"return"}"
+	|"{"return"}";
+
+body_proc:"{"nestedStmt_proc"}"
 	|"{""}";
-	
-body_proc: "{"nestedStmt_proc"}"
+
+code_block:
+	"{" nestedStmt "}"
 	|"{""}";
+
 
 nestedStmt: statement
 	|body
+	|code_block
 	|nestedStmt body
-	|nestedStmt statement;
-	
-nestedStmt_proc: 
-         statement
+	|nestedStmt statement
+	|nestedStmt code_block;
+
+nestedStmt_proc: statement
 	|body_proc
 	|nestedStmt_proc body_proc
 	|nestedStmt_proc statement;
-	
+
 statement: assign
 	|if
 	|while
@@ -119,8 +129,9 @@ statement: assign
 	|declare
 	|proc;
 
-return: RETURN mathExp ";"
+return:  RETURN mathExp ";"
 	|RETURN ";";
+	
 
 %%
 #include "lex.yy.c"
@@ -128,19 +139,20 @@ main()
 {
 	return yyparse();
 }
+
 node *mknode(char *token, node *left, node *right)
 {
-node* newnode=(node*)malloc(sizeof(node));
-char* newstr=(char*)malloc(sizeof(token)+1);
-strcpy(newstr,token);
-newnode->left=left;
-newnode->right=right;
-newnode->token=token;
+	node* newnode=(node*)malloc(sizeof(node));
+	char* newstr=(char*)malloc(sizeof(token)+1);
+	strcpy(newstr,token);
+	newnode->left=left;
+	newnode->right=right;
+	newnode->token=token;
 
-return newnode;
+	return newnode;
 }
 
-int yyerror(/*char* error*/)
+int yyerror()
 {
 	/*printf ("%s: at line %d found token [%s]\n",  error,counter, yytext); -- add a counter*/ 
 	printf("Doesnt Work.........!!!!");
