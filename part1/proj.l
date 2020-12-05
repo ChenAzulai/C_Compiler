@@ -38,6 +38,7 @@
 "^"	{return POINTER;}
 "true"	{return TRUE;}
 "false"	{return FALSE;}
+"Main()" {return MAIN;}
 
 "/%" {BEGIN(C_COMMENT);}
 <C_COMMENT>"%/" {BEGIN(INITIAL);}
