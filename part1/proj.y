@@ -48,9 +48,6 @@ paramList: paramList ";" id ":" typeOfVar
 
 values: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM ;
 
-/*var: declare
-	|var declare ;*/
-
 declare: VAR id ":" typeOfVar ";" ;
 
 typeOfVar: CHAR {$$=mknode("int",NULL,NULL);}
