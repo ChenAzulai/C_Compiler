@@ -27,25 +27,25 @@ int yyerror(char* error);
 
 %%
 
-s: code {printf("OK!\n");};
+s: code {printtree($1,0);};
 
 code: code_c proc_main {$$=mknode("CODE",$1,$2);}
 	|proc_main {$$=mknode("CODE",$1,NULL);};
 	
-code_c: code_c function {$$=mknode("",$1,$2);};
+code_c: code_c function {$$=mknode("",$1,$2);}
 	|code_c proc {$$=mknode("",$1,$2);}
 	|proc 
 	|function;
 
-proc_main: PROC MAIN body_proc {$$=mknode("Main()",$3,NULL);};
+proc_main: PROC MAIN body_proc {$$=mknode("PROC Main()",$3,NULL);};
 
-function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body; {$$=mknode("func",$4,mknode("ret",$7,$8));};
+function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body {$$=mknode("func",$4,mknode("ret",$7,$8));};
 
-proc: PROC IDEN "(" paramList ")" body_proc {$$=mknode("proc",$4,$6);};;
+proc: PROC IDEN "(" paramList ")" body_proc {$$=mknode("proc",$4,$6);};
 
 paramList: paramList ";" id ":" typeOfVar {$$=mknode("args",$1,mknode("",$3,$5));}
 	|id ":" typeOfVar {$$=mknode("args",$1,$3);}
-	|; {$$=mknode("",NULL,NULL);};
+	| {$$=mknode("",NULL,NULL);};
 
 values: NUM {$$=mknode(yytext,NULL,NULL);}
 	|REAL_NUM {$$=mknode(yytext,NULL,NULL);}
@@ -72,7 +72,7 @@ name: IDEN {$$=mknode(yytext,NULL,NULL);};
 
 if: 	IF "(" condition ")" body_proc {$$=mknode("IF",$3,$5);}
 	|IF "(" condition ")" assign {$$=mknode("IF",$3,$5);}
-	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF-ELSE",$3,mknode(NULL,$5,$7));}
+	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF-ELSE",$3,mknode("",$5,$7));}
 	|IF "(" condition ")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));};
  
 	
@@ -96,7 +96,7 @@ assign: IDEN EQUAL mathExp ";" {$$=mknode("=",$1,$3);}
 mathExp:  mathExp PLUS mathExp {$$=mknode("+",$1,$3);}
 	| mathExp MINUS mathExp {$$=mknode("-",$1,$3);}
 	| mathExp MUL mathExp {$$=mknode("*",$1,$3);}
-	| mathExp DIV mathExp {$$=mknode("/",$1,$3);}
+	| mathExp DIV mathExp {$$=mknode("\\",$1,$3);}
 	| mathExp OR mathExp {$$=mknode("OR",$1,$3);}
 	| mathExp AND mathExp {$$=mknode("AND",$1,$3);}
 	| elem;
@@ -108,10 +108,10 @@ elem: values
 	|IDEN;
 
 body: "{" nestedStmt return "}" {$$=mknode("",$2,$3);}
-	|"{" return "}" {$$=mknode("",$2,NULL);};
+	| "{" return "}" {$$=mknode("",$2,NULL);};
 
 body_proc: "{" nestedStmt "}" {$$=mknode("",$2,NULL);}
-	|"{" "}" {$$=mknode("",NULL,NULL);};
+	| "{" "}" {$$=mknode("",NULL,NULL);};
 
 nestedStmt: statement
 	|body_proc
