@@ -182,9 +182,8 @@ void printShift(int noShifts) {
     }
 }
 
-int yyerror()
+int yyerror(char* error)
 {
-	/*printf ("%s: at line %d found token [%s]\n",  error,counter, yytext); -- add a counter*/ 
-	printf("Doesnt Work.........!!!!\n");
+	printf ("%s: at line %d found token [%s]\n",  error,counter, yytext);
 	return 0;
 }
