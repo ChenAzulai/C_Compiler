@@ -11,8 +11,9 @@ typedef struct node{
 
 
 node *mknode (char *token, node *left, node *right);
-void printtree (node *tree);
-/*int yyerror(char* error); -- add this after adding counter*/
+void printShift(int noShift);
+void printtree (node *tree,int count);
+int yyerror(char* error);
 
 %}
 
@@ -38,17 +39,21 @@ code_c: code_c function
 
 proc_main: PROC MAIN body_proc;
 
-function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body;
+function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body; {$$=mknode("func",$4,mknode("ret",$7,$8));};
 
-proc: PROC IDEN "(" paramList ")" body_proc;
+proc: PROC IDEN "(" paramList ")" body_proc {$$=mknode("proc",$4,$6);};;
 
-paramList: paramList ";" id ":" typeOfVar 
-	|id ":" typeOfVar 
-	|; 
+paramList: paramList ";" id ":" typeOfVar {$$=mknode("args",$1,mknode("",$3,$5));}
+	|id ":" typeOfVar {$$=mknode("args",$1,$3);}
+	|; {$$=mknode("",NULL,NULL);};
 
-values: NUM|REAL_NUM|CONST_CHAR|CONST_STRING|HEX_NUM ;
+values: NUM {$$=mknode(yytext,NULL,NULL);}
+	|REAL_NUM {$$=mknode(yytext,NULL,NULL);}
+	|CONST_CHAR {$$=mknode(yytext,NULL,NULL);}
+	|CONST_STRING {$$=mknode(yytext,NULL,NULL);}
+	|HEX_NUM {$$=mknode(yytext,NULL,NULL);};
 
-declare: VAR id ":" typeOfVar ";" ;
+declare: VAR id ":" typeOfVar ";" {$$=mknode("var",$2,$4);};
 
 typeOfVar: CHAR {$$=mknode("int",NULL,NULL);}
 	|INT {$$=mknode("int",NULL,NULL);}
@@ -58,15 +63,17 @@ typeOfVar: CHAR {$$=mknode("int",NULL,NULL);}
 	|CHAR_P {$$=mknode("char*",NULL,NULL);}
 	|REAL_P {$$=mknode("real*",NULL,NULL);}
 	|STRING {$$=mknode("string",NULL,NULL);}
-	|STRING "["NUM"]" {$$=mknode("string",$2,NULL);};
+	|STRING "["NUM"]" {$$=mknode("string[_]",NULL,NULL);};
 
-id: id "," IDEN 
-	| IDEN {$$=mknode(yytext,NULL,NULL);};
+id:	name 
+	|id "," name {$$=mknode(yytext,$1,$3);};
+	
+name: IDEN {$$=mknode(yytext,NULL,NULL);};
 
-if: 	IF "(" condition ")" body_proc {$$=mknode("IF",$2,$3);}
-	|IF "(" condition ")" assign {$$=mknode("IF",$2,$3);}
-	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}  /*not sure */
-	|IF "(" condition ")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));}; /*not sure */
+if: 	IF "(" condition ")" body_proc {$$=mknode("IF",$3,$5);}
+	|IF "(" condition ")" assign {$$=mknode("IF",$3,$5);}
+	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF-ELSE",$3,mknode(NULL,$5,$7));}
+	|IF "(" condition ")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));};
  
 	
 condition: 	values IS_EQ values {$$=mknode("==",$1,$3);}
@@ -77,21 +84,21 @@ condition: 	values IS_EQ values {$$=mknode("==",$1,$3);}
 		|values DIFF values {$$=mknode("!=",$1,$3);}
 		|elem ;
 
-while: WHILE "("condition")" body 
-	|WHILE "("condition")" assign;
+while: WHILE "("condition")" body  {$$=mknode("while",$3,$5);}
+	|WHILE "("condition")" assign {$$=mknode("while",$3,$5);};
 
-assign: IDEN EQUAL mathExp ";"
-	|IDEN EQUAL values ";"
-	|IDEN EQUAL IDEN ";"
-	|IDEN EQUAL ADDS IDEN ";"
-	|IDEN EQUAL POINTER IDEN ";";
+assign: IDEN EQUAL mathExp ";" {$$=mknode("=",$1,$3);}
+	|IDEN EQUAL values ";" {$$=mknode("=",$1,$3);}
+	|IDEN EQUAL IDEN ";" {$$=mknode("=",$1,$3);}
+	|IDEN EQUAL ADDS IDEN ";" {$$=mknode("*=",$1,$4);}
+	|IDEN EQUAL POINTER IDEN ";" {$$=mknode("*=",$1,$4);};
 
 mathExp:  mathExp PLUS mathExp {$$=mknode("+",$1,$3);}
 	| mathExp MINUS mathExp {$$=mknode("-",$1,$3);}
 	| mathExp MUL mathExp {$$=mknode("*",$1,$3);}
 	| mathExp DIV mathExp {$$=mknode("/",$1,$3);}
-	| mathExp OR mathExp
-	| mathExp AND mathExp
+	| mathExp OR mathExp {$$=mknode("OR",$1,$3);}
+	| mathExp AND mathExp {$$=mknode("AND",$1,$3);}
 	| elem;
 
 elem: values
@@ -100,26 +107,16 @@ elem: values
 	|NULL1 {$$ = mknode(NULL, NULL, NULL);}
 	|IDEN;
 
-body: "{" nestedStmt return"}"
-	|"{"return"}";
+body: "{" nestedStmt return "}" {$$=mknode("",$2,$3);}
+	|"{" return "}" {$$=mknode("",$2,NULL);};
 
-body_proc:"{"nestedStmt"}"
-	|"{""}";
-
-/*code_block:
-	"{" nestedStmt "}"
-	|"{""}";*/
-
+body_proc: "{" nestedStmt "}" {$$=mknode("",$2,NULL);}
+	|"{" "}" {$$=mknode("",NULL,NULL);};
 
 nestedStmt: statement
 	|body_proc
-	|nestedStmt statement
-	|nestedStmt body_proc;
-
-/*nestedStmt_proc: statement
-	|nestedStmt_proc statement;
-	|code_block
-	|nestedStmt_proc code_block;*/
+	|nestedStmt statement {$$=mknode("",$1,$2);}
+	|nestedStmt body_proc {$$=mknode("",$1,$2);};
 
 statement:declare
 	|assign
@@ -128,8 +125,8 @@ statement:declare
 	|function
 	|proc;
 
-return:  RETURN mathExp ";"
-	|RETURN ";";
+return:  RETURN mathExp ";" {$$=mknode("return!!!!",$2,NULL);}
+	|RETURN ";" {$$=mknode("return@@@",NULL,NULL);};
 	
 
 %%
@@ -149,6 +146,40 @@ node *mknode(char *token, node *left, node *right)
 	newnode->token=token;
 
 	return newnode;
+}
+
+void printtree (node *tree, int tab)
+{
+    int shift = count;
+    if (strlen(tree->token) > 0) {
+        printShift(count);
+        printf ("(%s", tree->token);
+        if (tree->left != NULL) {
+            printf("\n");
+        }
+    }
+    if (tree->left) {
+        if (strlen(tree->token) == 0) {
+            shift = count - 1;
+        }
+        printtree(tree->left, shift + 1);
+        if (strlen(tree->token) > 0) {
+            printShift(count);
+        }
+    }
+    if (strlen(tree->token) > 0) {
+        printf (")\n");
+    }
+    if (tree->right) {
+        printtree (tree->right, count);
+    }
+}
+
+void printShift(int noShifts) {
+    int i;
+    for (i = 0; i < noShifts; i++) {
+        printf ("\t");
+    }
 }
 
 int yyerror()
