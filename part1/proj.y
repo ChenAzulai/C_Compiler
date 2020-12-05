@@ -37,7 +37,7 @@ code_c: code_c function {$$=mknode("",$1,$2);};
 	|proc 
 	|function;
 
-proc_main: PROC MAIN body_proc {$$=mknode("Main()",$3);};
+proc_main: PROC MAIN body_proc {$$=mknode("Main()",$3,NULL);};
 
 function: FUNC IDEN "(" paramList ")" RETURN typeOfVar body; {$$=mknode("func",$4,mknode("ret",$7,$8));};
 
