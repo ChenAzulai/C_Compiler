@@ -72,7 +72,7 @@ name: IDEN {$$=mknode(yytext,NULL,NULL);};
 
 if: 	IF "(" condition ")" body_proc {$$=mknode("IF",$3,$5);}
 	|IF "(" condition ")" assign {$$=mknode("IF",$3,$5);}
-	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF-ELSE",$3,mknode("",$5,$7));}
+	|IF "(" condition ")" body_proc ELSE body_proc {$$=mknode("IF-ELSE",$3,mknode("",$5,$7));}}
 	|IF "(" condition ")" assign ELSE assign {$$=mknode("IF",$2,mknode("ELSE",$3,$5));};
  
 	
