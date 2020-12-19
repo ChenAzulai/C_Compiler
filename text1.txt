@@ -1,1 +1,16 @@
-var x: char;
+
+proc p1(a1,a2:int; b:bool)
+{
+while(a1 == a2)
+{
+a1=6;
+a2=a1*3;
+b=a1<a2;
+}
+}
+
+proc Main()
+{
+
+
+}
