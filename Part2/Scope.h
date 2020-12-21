@@ -4,7 +4,6 @@
 #include<stdlib.h>
 #include<string.h>
 #include "AST.h"
-extern int checkmain;
 
 typedef struct Varaiables
 	{int isArg;
@@ -36,17 +35,18 @@ typedef struct SCOPE
 }SCOPE;
 
 extern SCOPE* globalScope;
+extern int AdditionalMain;
 
 SCOPE* mkScope(char *);
-SCOPE* finScope(SCOPE * scopes);
-void addFunc(char * name,Varaiable * arguments,node *returnType,int argNum,SCOPE*);
-void addVar(Varaiable * arguments,int,int,SCOPE * MYscope);
-void syntaxAnalyzer(node *tree,SCOPE * scope);
-void pushScopes(SCOPE* from,char*);
-char* getExpType(node *,SCOPE*);
-char* findFuncInScopes(node * tree,SCOPE * MYscope);
-char* findVar(node * tree,SCOPE * MYscope);
-Varaiable* mkArguments(node *,int *);
-Varaiable* callFuncArguments(SCOPE *,node *tree,int * count);
+SCOPE* finScope(SCOPE *);
+void addFunc(char * , Varaiable * , node *, int , SCOPE*);
+void addVar(Varaiable * , int , int , SCOPE *);
+void syntaxAnalyzer(node *, SCOPE *);
+void pushScopes(SCOPE* , char*);
+char* getExpType(node * , SCOPE*);
+char* findFuncInScopes(node * , SCOPE *);
+char* findVar(node *, SCOPE *);
+Varaiable* mkArguments(node * , int *);
+Varaiable* callFuncArguments(SCOPE *, node *,int * );
 
 #endif
