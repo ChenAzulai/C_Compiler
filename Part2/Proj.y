@@ -1,20 +1,19 @@
 %{
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include "AST.h"
-	#include "Scope.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "AST.h"
+#include "Scope.h"
 
-
-	int yylex();
-	int yyerror(char *e);
+int yylex();
+int yyerror(char *e);
 
 %}
 
 %union
-{
-    struct node *node;
-    char *string;
+{ 
+struct node *node;
+char *string;
 }
 
 
@@ -58,14 +57,9 @@ procedures: procedures  procedure {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
 procedure: FUNCTION IDENTIFIER OPENPAREN para_pro CLOSEPAREN cmmnt RETURN type_pro  OPENBRACE  pro_body CLOSEBRACE
-{ 
-		$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));
-
-}
+{$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));}
 | PROCEDUR IDENTIFIER OPENPAREN para_pro CLOSEPAREN  OPENBRACE  pro_body CLOSEBRACE
-{
-	$$=mkNode("PROC",mkNode($2,mkNode("",NULL,NULL),NULL),mkNode("ARGS",$4,$7));
-};
+{$$=mkNode("PROC",mkNode($2,mkNode("",NULL,NULL),NULL),mkNode("ARGS",$4,$7));};
 
 para_pro: para_list {$$=$1;}
 
@@ -223,21 +217,20 @@ call_func: IDENTIFIER paren_expr {$$=mkNode("Call func",mkNode($1,NULL,NULL),mkN
 int main()
 {
 	int res = yyparse();
-	printf("Res:%d \n", res);
-	printf("CheckMain:%d \n",checkmain);
-	if(res==0&&checkmain==1)
+	//printf("Res:%d \n", res);
+	//printf("Main Check: %d \n",AdditionalMain);
+	if(res==0&&AdditionalMain==1)
 	{
-	printf("syntax accept\n"); 
-	printf("Semantic accept\n");
+	printf("Syntax & Semantic Checked-OK!\nProgram Works!\n"); 
 	}
-	else if(checkmain==0)
+	else if(AdditionalMain==0)
 	{
-		printf("ERROR Main not defined\n");
+		printf("Syntax Error: proc Main() was not declared in the Code! \n");
 		exit(1);
 	}
-	else if(checkmain==2)
+	else if(AdditionalMain==2)
 	{
-		printf("ERROR you need to declare only one Main proc and not proc main \n");
+		printf("Syntax Error: Allowed only One and only proc Main() in the Code! \n");
 		exit(1);
 	}
 	return res;	
@@ -248,8 +241,14 @@ int yyerror(char *e)
 {
 	int yydebug=1;
 	fflush(stdout);
-	fprintf(stderr,"Error %s at line %d\n" ,e,yylineno);
-	fprintf(stderr, "Does not accept '%s'\n",yytext);
+	fprintf(stderr,"%s: Not Accapted: '%s' at line %d! \n" ,e,yytext,yylineno);
 	
 	return 0;
 }
+
+
+
+
+
+
+
