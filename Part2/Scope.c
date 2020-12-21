@@ -1,7 +1,7 @@
 #include "Scope.h"
 
 static int scope=0;
-int checkmain=0;
+int AdditionalMain=0;
 SCOPE* globalScope=NULL;
 
 
@@ -16,12 +16,12 @@ void addVar(Varaiable * arguments,int countvars,int isArg,SCOPE * MYscope){
 		for(j=0;j<countvars;j++)
 	if(i!=j && strcmp(arguments[j].name,arguments[i].name)==0 )
 	{
-		printf("ERROR: same var name %s in one declare",arguments[i].name);
+		printf("Syntax Error: Not allowed to declare the same Var '%s' more then once in the same scope",arguments[i].name);
 		SCOPE * t=scopes->preScope;
 		while(t->preScope!=NULL && t->preScope->Fcount==0)
 			t=t->preScope;
 		if(t->func!=NULL)
-		printf(",in func %s\n",t->func[t->Fcount-1]->name);
+		printf("( in %s() )\n",t->func[t->Fcount-1]->name);
 			else
 		printf("\n");
 		exit(1);
@@ -40,12 +40,12 @@ void addVar(Varaiable * arguments,int countvars,int isArg,SCOPE * MYscope){
 			{
 				if(strcmp(tmp[i].name,arguments[j].name)==0 )
 				{
-					printf("ERROR:same var name %s in same scope",tmp[i].name);
+					printf("Syntax Error: %s Var Was declared in the same scope",tmp[i].name);
 					SCOPE * t=scopes->preScope;
 					while(t->preScope!=NULL && t->preScope->Fcount==0)
 						t=t->preScope;
 					if(t->func!=NULL)
-					printf(",in func %s\n",t->func[t->Fcount-1]->name);
+					printf(",inside Func %s() !\n",t->func[t->Fcount-1]->name);
 					else
 					printf("\n");
 					exit(1);
@@ -90,7 +90,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 		if(strcmp(getExpType(tree->left,MYscope),"boolean")==0)
 			msg="boolean";
 		else{
-			printf("ERROR, operator !  used only on boolean type");
+			printf("Syntax Error: The ! Operator can be used only for boolean types!\n");
 			exit(1);
 		
 		}
@@ -98,7 +98,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 		if(strcmp(getExpType(tree->left,MYscope),"string")==0)
 		msg="int";
 		else{
-			printf("ERROR,operator | only used on string type in func/proc %s",globalScope->func[globalScope->Fcount-1]->name);
+			printf("Syntax Error: The | (OR) Operator can be used only on string type in Func\\Proc %s! \n",globalScope->func[globalScope->Fcount-1]->name);
 			exit(1);
 			
 		}
@@ -107,7 +107,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			if(strcmp(getExpType(tree->left,MYscope),getExpType(tree->right,MYscope))==0&&strcmp(getExpType(tree->right,MYscope),"string")!=0)
 			msg="boolean";
 			else{
-				printf("ERROR: invalid use operator %s between %s and %s in func/proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
+				printf("Syntax Error: invalid use of '%s' Operator between '%s' and '%s'\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
 			exit(1);	
 			}
 		}
@@ -117,7 +117,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			if((strcmp(getExpType(tree->left,MYscope),"int")==0||strcmp(getExpType(tree->left,MYscope),"real")==0)&&(strcmp(getExpType(tree->right,MYscope),"int")==0||strcmp(getExpType(tree->right,MYscope),"real")==0))
 			msg="boolean";
 			else{
-				printf("ERROR: invalid use operator %s between %s and %s in func/proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
+				printf("Syntax Error: invalid use of %s Operator between '%s' and '%s' \n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
 				exit(1);
 	
 			}
@@ -129,7 +129,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			if(strcmp(getExpType(tree->left,MYscope),getExpType(tree->right,MYscope))==0&&strcmp(getExpType(tree->right,MYscope),"boolean")==0)
 			msg="boolean";
 			else{
-				printf("ERROR: invalid use operator %s between %s and %s in func/proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
+				printf("Syntax Error: invalid use of %s Operator  between %s and %s in Func\\Proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
 				exit(1);
 				
 			}
@@ -151,7 +151,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			}
 			else if(strcmp(msg,"")==0)
 			{
-				printf("ERROR: invalid use operator %s between %s and %s in func/proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
+				printf("Syntax Error: invalid use of %s Operator  between %s and %s= in Func\\Proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
 				exit(1);
 				
 			}
@@ -168,7 +168,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			}
 			else
 			{
-				printf("ERROR: invalid use operator %s between %s and %s in func/proc %s\n\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
+				printf("Syntax Error: invalid use of %s Operator  between %s and %s in Func\\Proc %s\n",tree->token,getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),globalScope->func[globalScope->Fcount-1]->name);
 				exit(1);
 				
 			}
@@ -191,7 +191,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			msg="real*";
 			else
 			{
-				printf("ERROR: invalid use %s on %s \n",tree->token,msg);
+				printf("Syntax Error: Incorrect use of %s on %s \n",tree->token,msg);
 				exit(1);
 			}
 		}
@@ -212,7 +212,7 @@ char * getExpType(node * tree,SCOPE* MYscope){
 			msg="real";
 			else
 			{
-				printf("ERROR: invalid use %s on %s \n",tree->token,msg);
+				printf("Syntax Error: Incorrect use of %s on %s \n",tree->token,msg);
 			exit(1);	
 			}
 
@@ -254,7 +254,7 @@ void addFunc(char * name,Varaiable * arguments,node *returnType,int argNum,SCOPE
 		for(j=0;j<argNum;j++)
 	if(i!=j && strcmp(arguments[j].name,arguments[i].name)==0 )
 	{
-		printf("ERROR, there are arguments  with same name %s in func %s\n",arguments[i].name,name);
+		printf("Syntax Error: Several arguments named: %s in Func %s() !\n",arguments[i].name,name);
 	exit(1);	
 	}
 	if(scopes->func==NULL)
@@ -268,10 +268,14 @@ void addFunc(char * name,Varaiable * arguments,node *returnType,int argNum,SCOPE
 		for(i=0;i<scopes->Fcount;i++)
 		{		
 
-				if(strcmp(tmp[i]->name,name)==0 )
+				if(strcmp(tmp[i]->name,name)==0)
 				{
-					printf("ERROR, there's already func/proc %s with the same name in the same scope \n",tmp[i]->name);
-	exit(1);				
+					if(strcmp(tmp[i]->name,"Main")==0)
+						{printf("Syntax Error: Allowed only One and only proc Main() in the Code!\n",tmp[i]->name);
+						exit(1);}				
+					if(strcmp(tmp[i]->name,name)==0)
+						{printf("Syntax Error: The name: '%s' being used in the same scope by a different Func Or Proc! \n",tmp[i]->name);
+						exit(1);}					
 				}	
 				scopes->func[i]=tmp[i];
 		}
@@ -285,7 +289,7 @@ void addFunc(char * name,Varaiable * arguments,node *returnType,int argNum,SCOPE
 		else{
 		if(strcmp(returnType->token,"string")==0)
 			{
-				printf("ERORR, the return type  of func %s can't be string\n",name);
+				printf("Syntax Error: in Func %s() Not Allowed string as a Return type! \n",name);
 			exit(1);	
 			}
 		scopes->func[scopes->Fcount]->returnType=returnType->token;
@@ -312,7 +316,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 		if(!(strcmp(getExpType(tree->right,MYscope),"NULL")==0&& (strcmp(getExpType(tree->left,MYscope),"real*")==0||strcmp(getExpType(tree->left,MYscope),"int*")==0||strcmp(getExpType(tree->left,MYscope),"char*")==0)))
 		if(strcmp(getExpType(tree->left,MYscope),getExpType(tree->right,MYscope))!=0)
 		{
-			printf("ERORR,can't use  operator '=' between %s and %s in scope %s in func/proc %s\n",getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
+			printf("Syntax Error: Not Allowed '=' Operator to use between '%s' and '%s' not the same type!\n",getExpType(tree->left,MYscope),getExpType(tree->right,MYscope),MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
 		exit(1);	
 		}
 	}
@@ -328,7 +332,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 	{
 		if(strcmp(getExpType(tree->left->left,MYscope),"boolean")!=0)
 		{
-			printf("ERORR:'if' condition must be type boolean\n");
+			printf("Syntax Error: Inside 'if' condition has to be Boolean Type!\n");
 	exit(1);		
 		}
 
@@ -351,7 +355,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 	{
 		if(strcmp(getExpType(tree->left->left,MYscope),"boolean")!=0)
 		{
-			printf("ERORR:'while' condition must be type boolean\n");
+			printf("Syntax Error: Inside 'while' condition has to be Boolean Type!\n");
 		exit(1);	
 		}
 
@@ -384,7 +388,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 		syntaxAnalyzer(tree->right,finScope( MYscope->nextScope));
 		if(MYscope->func[MYscope->Fcount-1]->findreturn==false)
 		{
-			printf("ERORR in func %s must be return\n",tree->left->token);
+			printf("Syntax Error: Func %s() must have Return statment!\n",tree->left->token);
 		exit(1);	
 		}
         scope--;		
@@ -396,16 +400,16 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 		Varaiable * arg=mkArguments(tree->right->left,&count);
 	if(strcmp(tree->left->token,"Main")==0)
 			{
-				checkmain=checkmain+1;
+				AdditionalMain=AdditionalMain+1;
 			}
 	if(strcmp(tree->right->token,"Main")==0)
 			{
-				checkmain=2;
+				AdditionalMain=2;
 			}
 
 	if(strcmp(tree->left->token,"Main")==0 && arg!=NULL)
         {
-        	printf("ERORR %s dont accept variable\n",tree->left->token);
+        	printf("Syntax Error: %s does not accept Arguments!\n",tree->left->token);
 		exit(1);
         }
 		addFunc(tree->left->token,arg,NULL,count,MYscope);
@@ -454,7 +458,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 	{
 		if(strcmp(getExpType(tree->left->left,MYscope),"boolean")!=0)
 		{
-			printf("ERORR:'if' condition must be type boolean\n");
+			printf("Syntax Error: Inside 'if' condition has to be Boolean Type!\n");
 		exit(1);	
 		}
 
@@ -483,7 +487,7 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 		{
 			if(strcmp(getExpType(tree->left,MYscope),tmp->preScope->func[tmp->preScope->Fcount-1]->returnType))
 			{
-			printf("ERORR,the return type doesn't match the type of func %s \n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);
+			printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);
 			printf("%s ,%s %s\n",getExpType(tree->left,MYscope),tmp->preScope->func[tmp->preScope->Fcount-1]->returnType,tmp->preScope->func[tmp->preScope->Fcount-1]->name);
 			exit(1);
 			}
@@ -498,14 +502,14 @@ void syntaxAnalyzer(node *tree,SCOPE * MYscope){
 				}
 				else
 				{
-					printf("ERORR,the return type doesn't match the type of func %s \n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);
+					printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);
 					printf("%s ,%s %s\n",getExpType(tree->left,MYscope),tmp->preScope->func[tmp->preScope->Fcount-1]->returnType,tmp->preScope->func[tmp->preScope->Fcount-1]->name);
 					exit(1);
 				}
 			}
 			else
 			{
-				printf("ERORR, invalid return value in procedure %s\n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);
+				printf("Syntax Error: invalid return value in procedure %s\n",tmp->preScope->func[tmp->preScope->Fcount-1]->name);//Whats this printf mean?
 			exit(1);	
 			}  
 		}  
@@ -574,10 +578,10 @@ char* findFuncInScopes(node * tree,SCOPE * MYscope)
 		}
 		tmp=tmp->preScope;
 	}
-	printf("ERROR,func %s not find call in scope %s in func/proc %s\n",tree->left->token,MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
+	printf("Syntax Error: Func %s() can not be called in the scope or Above because it was not declared\n",tree->left->token,MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
 	if(find==true)
 	{
-		printf("ERROR, There is a func with the same name that accepts different arguments\n");
+		printf("Syntax Error: A Function Has already been Declared with the same name but different arguments!\n");
 		exit(1);
 	}	
 }
@@ -603,12 +607,12 @@ char *findVar(node * tree,SCOPE * MYscope)
 					}
 					else
 					{
-						printf("ERORR type for index of string must be int (<string>[<int>])in scope %s in func/proc %s\n",MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
+						printf("Syntax Error: The index of string must be int: <string>[int]\n",MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
 exit(1);						
 					}
 				else
 				{
-					printf("ERORR using index only on string type (<string>[<int>]) in scope %s in func/proc %s\n",MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
+					printf("Syntax Error: using index only on string type <string>[int] in scope %s in Func\\Proc! %s\n",MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
 exit(1);					
 				}
 
@@ -619,7 +623,7 @@ exit(1);
 		}
 		tmp=tmp->preScope;
 	}
-	printf("ERORR the variable %s not found in scope %s in func/proc %s\n ",tree->token,MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
+	printf("Syntax Error: the var '%s' was not declared at all\n" ,tree->token,MYscope->name,globalScope->func[globalScope->Fcount-1]->name);
 		exit(1);
 }
 
