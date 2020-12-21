@@ -12,6 +12,6 @@ struct node *right;
 } node;
 
 typedef enum {false,true} bool;
-node* mkNode(char* token, node *left, node *right);
+node* mkNode(char*, node *, node *);
 
 #endif
