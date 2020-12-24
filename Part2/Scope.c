@@ -9,7 +9,7 @@ void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
 	int i=0, j=0;
 	if(countvars==0)
 	return;
-	Var* tmp;
+	Var* Temp;
 	SCOPE * scopes=CurrScope;
 
 	for(i=0;i<countvars;i++)
@@ -32,15 +32,15 @@ void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
 	}
 	else
 	{
-		tmp=scopes->var;
+		Temp=scopes->var;
 		scopes->var=(Var*) malloc(sizeof(Var)*(scopes->VarCount+countvars));
 		for(i=0;i<scopes->VarCount;i++)
 		{
 			for(j=0;j<countvars;j++)
 			{
-				if(strcmp(tmp[i].name,arguments[j].name)==0 )
+				if(strcmp(Temp[i].name,arguments[j].name)==0 )
 				{
-					printf("Syntax Error: %s Var Was declared in the same scope",tmp[i].name);
+					printf("Syntax Error: %s Var Was declared in the same scope",Temp[i].name);
 					SCOPE * t=scopes->upperScope;
 					while(t->upperScope!=NULL && t->upperScope->FuncCount==0)
 						t=t->upperScope;
@@ -51,7 +51,7 @@ void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
 					exit(1);
 				}
 			}
-			scopes->var[i]=tmp[i];	
+			scopes->var[i]=Temp[i];	
 		}
 	}
 	for(j=0;j<countvars;j++)
@@ -248,7 +248,7 @@ SCOPE* mkSCOPE(char* name)
 
 void addFunction(char * name,Var * arguments,node *returnType,int argNum,SCOPE * CurrScope){
 	int i=0, j=0;
-	Function** tmp;
+	Function** Temp;
 	SCOPE * scopes = CurrScope;
 	for(i=0;i<argNum;i++)
 		for(j=0;j<argNum;j++)
@@ -263,21 +263,21 @@ void addFunction(char * name,Var * arguments,node *returnType,int argNum,SCOPE *
 	}
 	else
 	{
-		tmp=scopes->func;
+		Temp=scopes->func;
 		scopes->func=(Function**) malloc(sizeof(Function*)*(scopes->FuncCount+1));
 		for(i=0;i<scopes->FuncCount;i++)
 		{		
 
-				if(strcmp(tmp[i]->name,name)==0)
+				if(strcmp(Temp[i]->name,name)==0)
 				{
-					if(strcmp(tmp[i]->name,"Main")==0)
-						{printf("Syntax Error: Allowed only One and only proc Main() in the Code!\n",tmp[i]->name);
+					if(strcmp(Temp[i]->name,"Main")==0)
+						{printf("Syntax Error: Allowed only One and only proc Main() in the Code!\n",Temp[i]->name);
 						exit(1);}				
-					if(strcmp(tmp[i]->name,name)==0)
-						{printf("Syntax Error: The name: '%s' being used in the same scope by a different Func Or Proc! \n",tmp[i]->name);
+					if(strcmp(Temp[i]->name,name)==0)
+						{printf("Syntax Error: The name: '%s' being used in the same scope by a different Func Or Proc! \n",Temp[i]->name);
 						exit(1);}					
 				}	
-				scopes->func[i]=tmp[i];
+				scopes->func[i]=Temp[i];
 		}
 	}
 		scopes->func[scopes->FuncCount]=(Function*) malloc(sizeof(Function));
@@ -475,40 +475,40 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 
 	else if(strcmp(tree->token, "return") == 0)
 	{
-		SCOPE * tmp= CurrScope;
+		SCOPE * Temp= CurrScope;
 		int flag=true;
-		while(strcmp(tmp->name,"FUNC")!=0&&strcmp(tmp->name,"PROC")!=0&&strcmp(tmp->name,"CODE")!=0)
+		while(strcmp(Temp->name,"FUNC")!=0&&strcmp(Temp->name,"PROC")!=0&&strcmp(Temp->name,"CODE")!=0)
 		{
-			tmp=tmp->upperScope;
+			Temp=Temp->upperScope;
 			flag=false;
 		}
 		if(flag==false)
 		{
-			if(strcmp(getExprType(tree->left,CurrScope),tmp->upperScope->func[tmp->upperScope->FuncCount-1]->returnType))
+			if(strcmp(getExprType(tree->left,CurrScope),Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType))
 			{
-			printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",tmp->upperScope->func[tmp->upperScope->FuncCount-1]->name);
-			printf("%s ,%s %s\n",getExprType(tree->left,CurrScope),tmp->upperScope->func[tmp->upperScope->FuncCount-1]->returnType,tmp->upperScope->func[tmp->upperScope->FuncCount-1]->name);
+			printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",Temp->upperScope->func[Temp->upperScope->FuncCount-1]->name);
+			printf("%s ,%s %s\n",getExprType(tree->left,CurrScope),Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType,Temp->upperScope->func[Temp->upperScope->FuncCount-1]->name);
 			exit(1);
 			}
 		}
 		else
 		{
-			if(tmp->upperScope->func[tmp->upperScope->FuncCount-1]->returnType!=NULL)
+			if(Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType!=NULL)
 			{
-				if(0==strcmp(getExprType(tree->left,CurrScope),tmp->upperScope->func[tmp->upperScope->FuncCount-1]->returnType))
+				if(0==strcmp(getExprType(tree->left,CurrScope),Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType))
 				{
-					tmp->upperScope->func[tmp->upperScope->FuncCount-1]->findreturn=true;
+					Temp->upperScope->func[Temp->upperScope->FuncCount-1]->findreturn=true;
 				}
 				else
 				{
-					printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",tmp->upperScope->func[tmp->upperScope->FuncCount-1]->name);
-					printf("%s ,%s %s\n",getExprType(tree->left,CurrScope),tmp->upperScope->func[tmp->upperScope->FuncCount-1]->returnType,tmp->upperScope->func[tmp->upperScope->FuncCount-1]->name);
+					printf("Syntax Error: Return Type doesn't match the Func %s() Type! \n",Temp->upperScope->func[Temp->upperScope->FuncCount-1]->name);
+					printf("%s ,%s %s\n",getExprType(tree->left,CurrScope),Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType,Temp->upperScope->func[Temp->upperScope->FuncCount-1]->name);
 					exit(1);
 				}
 			}
 			else
 			{
-				printf("Syntax Error: invalid return value in procedure '%s'\n",tmp->upperScope->func[tmp->upperScope->FuncCount-1]->name);//Whats this printf mean?
+				printf("Syntax Error: invalid return value in procedure '%s'\n",Temp->upperScope->func[Temp->upperScope->FuncCount-1]->name);//Whats this printf mean?
 			exit(1);	
 			}  
 		}  
@@ -552,30 +552,30 @@ void pushScopes(SCOPE* from,char* name)
 char* findFuncInScopes(node * tree,SCOPE * CurrScope)
 {
 	int i=0, j=0,t;
-	SCOPE* tmp=CurrScope;
+	SCOPE* Temp=CurrScope;
 	Var* arguments;
 	bool find = false, flag = true;
-	while(tmp!=NULL)
+	while(Temp!=NULL)
 	{
-		for(i=0;i<tmp->FuncCount;i++)
-		if(strcmp(tree->left->token,tmp->func[i]->name)==0)
+		for(i=0;i<Temp->FuncCount;i++)
+		if(strcmp(tree->left->token,Temp->func[i]->name)==0)
 		{
 			find=true;
 			flag=true;
 			int count=0;
 			arguments=callFuncArguments(CurrScope,tree->right->left,&count);
-			if(count==tmp->func[i]->argNum)
+			if(count==Temp->func[i]->argNum)
 			{
 				for(j=0, t=count-1; j<count; j++,t--)
 				{
-					if(strcmp(arguments[j].type,tmp->func[i]->arguments[t].type)!=0)
+					if(strcmp(arguments[j].type,Temp->func[i]->arguments[t].type)!=0)
 						flag=false;
 				}
 				if(flag==true)
-					return tmp->func[i]->returnType;
+					return Temp->func[i]->returnType;
 			}
 		}
-		tmp=tmp->upperScope;
+		Temp=Temp->upperScope;
 	}
 	printf("Syntax Error: Func %s() can not be called in the scope or Above because it was not declared\n",tree->left->token,CurrScope->name,globalScope->func[globalScope->FuncCount-1]->name);
 	if(find==true)
@@ -588,18 +588,18 @@ char* findFuncInScopes(node * tree,SCOPE * CurrScope)
 char *findVar(node * tree,SCOPE * CurrScope)
 {
 	int j=0, i=0;
-	SCOPE* tmp = CurrScope;
+	SCOPE* Temp = CurrScope;
 	if(strcmp(tree->token,"solovar")==0)
 		tree=tree->left;
-	while(tmp!=NULL)
+	while(Temp!=NULL)
 	{
-		for(i=0;i<tmp->VarCount;i++)
-		if(strcmp(tree->token,tmp->var[i].name)==0)
+		for(i=0;i<Temp->VarCount;i++)
+		if(strcmp(tree->token,Temp->var[i].name)==0)
 		{
 			
 			if(tree->left!=NULL && strcmp(tree->left->token,"[")==0)
 			{
-				if(strcmp(tmp->var[i].type,"string")==0)
+				if(strcmp(Temp->var[i].type,"string")==0)
 					if(strcmp(getExprType(tree->left->left,CurrScope),"int")==0)
 					{
 						return "char";
@@ -617,10 +617,10 @@ exit(1);
 
 			}
 			else
-			return tmp->var[i].type;
+			return Temp->var[i].type;
 
 		}
-		tmp=tmp->upperScope;
+		Temp=Temp->upperScope;
 	}
 	printf("Syntax Error: the var '%s' was not declared at all\n" ,tree->token,CurrScope->name,globalScope->func[globalScope->FuncCount-1]->name);
 		exit(1);
@@ -632,21 +632,21 @@ Var * mkArgs(node *tree,int *count){
 	char* type,*len;
 	if(tree!=NULL)
 	{
-		node * temp1=tree,*tmp=tree;
+		node * temp1=tree,*Temp=tree;
 		do{
 		if(strcmp(temp1->token, "")==0)
 		{
-			tmp=temp1->right->left;
+			Temp=temp1->right->left;
 			temp1=temp1->left;
 			
 			
-			if(strcmp(tmp->token, "(")==0||strcmp(tmp->token, "var")==0)
+			if(strcmp(Temp->token, "(")==0||strcmp(Temp->token, "var")==0)
 			{
-				type=tmp->left->token;
-				if(tmp->left->left!=NULL)
-					len=tmp->left->left->left->token;
+				type=Temp->left->token;
+				if(Temp->left->left!=NULL)
+					len=Temp->left->left->left->token;
 				node * tmptree;
-				tmptree=tmp->right->left;
+				tmptree=Temp->right->left;
 				do{
 				arr2[*count].name=tmptree->token;
 				arr2[*count].type=type;
@@ -659,18 +659,18 @@ Var * mkArgs(node *tree,int *count){
 				}while(tmptree!=NULL);
 			}
 		}
-		}while(strcmp(temp1->token, "(")!=0&&strcmp(tmp->token, "var")!=0);
-		tmp=temp1;
-		if(strcmp(tmp->token, "(")==0||strcmp(tmp->token, "var")==0)
+		}while(strcmp(temp1->token, "(")!=0&&strcmp(Temp->token, "var")!=0);
+		Temp=temp1;
+		if(strcmp(Temp->token, "(")==0||strcmp(Temp->token, "var")==0)
 		{
-			type=tmp->left->token;
+			type=Temp->left->token;
 			node * tmptree;
-			if(strcmp(tmp->token, "var")==0)
-			tmptree=tmp->right;
+			if(strcmp(Temp->token, "var")==0)
+			tmptree=Temp->right;
 			else
-			tmptree=tmp->right->left;
-			if(tmp->left->left!=NULL)
-			len=tmp->left->left->left->token;
+			tmptree=Temp->right->left;
+			if(Temp->left->left!=NULL)
+			len=Temp->left->left->left->token;
 			do{
 			arr2[*count].name=tmptree->token;
 			arr2[*count].type=type;
