@@ -5,18 +5,18 @@
 #include<string.h>
 #include "AST.h"
 
-typedef struct Varaiables
+typedef struct Var
 	{int isArg;
 	char *name;
 	char *value;
 	char *type;
-	char * length;
-}Varaiable;
+	char * len;
+}Var;
 
 typedef struct Function 
 {
 	char * name;
-	struct Varaiables * arguments;
+	Var * arguments;
 	char *returnType; 
 	int argNum;
 	bool findreturn;
@@ -26,27 +26,26 @@ typedef struct Function
 typedef struct SCOPE
 {	
 	char *name;
-	Varaiable * var;
+	Var * var;
 	int VarCount;
-	int Fcount;
+	int FuncCount;
 	Function ** func;
-	struct SCOPE * nextScope;
-	struct SCOPE * preScope;
+	struct SCOPE * innerScope;
+	struct SCOPE * upperScope;
 }SCOPE;
 
 extern SCOPE* globalScope;
 extern int AdditionalMain;
-
-SCOPE* mkScope(char *);
-SCOPE* finScope(SCOPE *);
-void addFunc(char * , Varaiable * , node *, int , SCOPE*);
-void addVar(Varaiable * , int , int , SCOPE *);
-void syntaxAnalyzer(node *, SCOPE *);
+SCOPE* mkSCOPE(char *);
+SCOPE* finalScope(SCOPE *);
+void addFunction(char * , Var * , node *, int , SCOPE*);
+void addVar(Var * , int , int , SCOPE *);
+void analayzeSyntax(node *, SCOPE *);
 void pushScopes(SCOPE* , char*);
-char* getExpType(node * , SCOPE*);
+char* getExprType(node * , SCOPE*);
 char* findFuncInScopes(node * , SCOPE *);
 char* findVar(node *, SCOPE *);
-Varaiable* mkArguments(node * , int *);
-Varaiable* callFuncArguments(SCOPE *, node *,int * );
+Var* mkArgs(node * , int *);
+Var* callFuncArguments(SCOPE *, node *,int * );
 
 #endif
