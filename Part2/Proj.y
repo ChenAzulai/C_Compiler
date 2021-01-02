@@ -42,7 +42,7 @@
 
 
 %type <node> addsExp nestedStmt body_stmt pointerExp nestedExp function 
-%type <node> elem values condition expr lhs nestedAssign body 
+%type <node> elem values mathExp condition expr lhs nestedAssign body 
 %type <node> statement typeOfVar typeStr typeSt nestedIden declare expBody
 %type <node> procBody paramList paramProc proc nestedProc
 %type <node>  code s nestedDec 
@@ -119,7 +119,6 @@ lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",
 	| IDEN {$$=mkNode($1,NULL,NULL);}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
-
 condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr DIFF expr {$$=mkNode("!=",$1,$3);}
 	| expr BIG_EQ expr {$$=mkNode(">=",$1,$3);}
@@ -128,7 +127,9 @@ condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr SMALLER expr {$$=mkNode("<",$1,$3);}
 	| expr AND expr {$$=mkNode("&&",$1,$3);}
 	| expr OR expr {$$=mkNode("||",$1,$3);}
-	| expr PLUS expr {$$=mkNode("+",$1,$3);}
+	| mathExp {$$=$1;};
+
+mathExp: expr PLUS expr {$$=mkNode("+",$1,$3);}
 	| expr MINUS expr {$$=mkNode("-",$1,$3);}
 	| expr MUL expr {$$=mkNode("*",$1,$3);}
 	| expr DIV expr {$$=mkNode("/",$1,$3);};
@@ -160,7 +161,8 @@ addsExp: ADDS IDEN {$$=mkNode("&",mkNode($2,NULL,NULL),NULL);}
 	| ADDS IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("&", mkNode($2,mkNode("[",$4,mkNode("]",NULL,NULL)),NULL),NULL);}
 	| ADDS OPEN_ROUND IDEN OPEN_SQUARE expr CLOSE_SQUARE CLOSE_ROUND {$$=mkNode("&",mkNode("(",mkNode($3,mkNode("[",$5,mkNode("]",NULL,NULL)),NULL),mkNode(")",NULL,NULL)),NULL);};
 
-pointerExp: POINTER IDEN {$$=mkNode("^",mkNode($2,NULL,NULL),NULL);};
+pointerExp: POINTER IDEN {$$=mkNode("^",mkNode($2,NULL,NULL),NULL);}
+	| POINTER OPEN_ROUND mathExp CLOSE_ROUND {$$=mkNode("^",mkNode("(",$3,NULL),mkNode(")",NULL,NULL));};
 
 nestedExp: expr COMMA nestedExp {$$=mkNode("",$1,mkNode(",",$3,NULL));} 
 	| expr {$$=mkNode("",$1,NULL);}
