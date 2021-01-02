@@ -1,0 +1,25 @@
+------גזירות------
+
+project -> s
+program -> code
+procedure -> proc
+procedures -> procs
+para_list->paramList
+declear->declare
+cmmnt->cmt
+para_pro->paramProc
+pro_body->procBody
+declares->nestedDec
+var_id->nestedIden
+type_id->typeSt 
+stmnts->nestedstmt
+stmnt->statement
+stmnt_clock->body_stmt
+new_block->body
+assmnt_stmnt->nestesAssign
+address_expr->addsExp
+dereference_expr->pointerExp
+expr_list->nestedExp
+paren_expr->expBody
+call_func->function
+procs->nestedProc
