@@ -1,23 +1,22 @@
 #include "Scope.h"
 
-static int scope=0;
+static int scopeAmount=0;
 int AdditionalMain=0;
 SCOPE* globalScope=NULL;
 
 
-void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
+void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope){
 	int i=0, j=0;
-	if(countvars==0)
-	return;
+	if(numOfVars==0)
+		return;
 	Var* Temp;
-	SCOPE * scopes=CurrScope;
-
-	for(i=0;i<countvars;i++)
-		for(j=0;j<countvars;j++)
-	if(i!=j && strcmp(arguments[j].name,arguments[i].name)==0)
+	SCOPE * thisScope=CurrScope;
+	for(i=0;i<numOfVars;i++)
+		for(j=0;j<numOfVars;j++)
+	if(i!=j && strcmp(args[j].name,args[i].name)==0)
 	{
-		printf("Syntax Error: Not allowed to declare the same Var '%s' more then once in the same scope",arguments[i].name);
-		SCOPE * t=scopes->upperScope;
+		printf("Syntax Error: Not allowed to declare the same Var '%s' more then once in the same scope",args[i].name);
+		SCOPE * t=thisScope->upperScope;
 		while(t->upperScope!=NULL && t->upperScope->FuncCount==0)
 			t=t->upperScope;
 		if(t->func!=NULL)
@@ -26,22 +25,22 @@ void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
 		printf("\n");
 		exit(1);
 	}
-	if(scopes->var==NULL)
+	if(thisScope->var==NULL)
 	{ 
-		scopes->var=(Var*)malloc(sizeof(Var)*countvars);
+		thisScope->var=(Var*)malloc(sizeof(Var)*numOfVars);
 	}
 	else
 	{
-		Temp=scopes->var;
-		scopes->var=(Var*) malloc(sizeof(Var)*(scopes->VarCount+countvars));
-		for(i=0;i<scopes->VarCount;i++)
+		Temp=thisScope->var;
+		thisScope->var=(Var*) malloc(sizeof(Var)*(thisScope->VarCount+numOfVars));
+		for(i=0;i<thisScope->VarCount;i++)
 		{
-			for(j=0;j<countvars;j++)
+			for(j=0;j<numOfVars;j++)
 			{
-				if(strcmp(Temp[i].name,arguments[j].name)==0 )
+				if(strcmp(Temp[i].name,args[j].name)==0 )
 				{
 					printf("Syntax Error: %s Var Was declared in the same scope",Temp[i].name);
-					SCOPE * t=scopes->upperScope;
+					SCOPE * t=thisScope->upperScope;
 					while(t->upperScope!=NULL && t->upperScope->FuncCount==0)
 						t=t->upperScope;
 					if(t->func!=NULL)
@@ -51,17 +50,18 @@ void addVar(Var * arguments,int countvars,int isArg,SCOPE * CurrScope){
 					exit(1);
 				}
 			}
-			scopes->var[i]=Temp[i];	
+			thisScope->var[i]=Temp[i];	
 		}
 	}
-	for(j=0;j<countvars;j++)
+	j=0;
+	while(j<numOfVars)
 	{
-
-		scopes->var[scopes->VarCount].name=arguments[j].name;
-		scopes->var[scopes->VarCount].value=NULL;
-		scopes->var[scopes->VarCount].isArg=isArg;
-		scopes->var[scopes->VarCount].len=arguments[j].len;
-		scopes->var[(scopes->VarCount)++].type=arguments[j].type;
+		thisScope->var[thisScope->VarCount].name=args[j].name;
+		thisScope->var[thisScope->VarCount].value=NULL;
+		thisScope->var[thisScope->VarCount].isArg=isArg;
+		thisScope->var[thisScope->VarCount].len=args[j].len;
+		thisScope->var[(thisScope->VarCount)++].type=args[j].type;
+		j++;
 	}
 
 }
@@ -89,7 +89,8 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(tree->token,"!")==0)
 		if(strcmp(getExprType(tree->left,CurrScope),"boolean")==0)
 			msg="boolean";
-		else{
+		else
+		{
 			printf("Syntax Error: The ! Operator can be used only for boolean types!\n");
 			exit(1);
 		
@@ -98,7 +99,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(getExprType(tree->left,CurrScope),"string")==0)
 		msg="int";
 		else{
-			printf("Syntax Error: The | (OR) Operator can be used only on string type in Func\\Proc %s! \n",globalScope->func[globalScope->FuncCount-1]->name);
+			printf("Syntax Error: in '%s' - The | Operator can be used only on String type! \n",globalScope->func[globalScope->FuncCount-1]->name);
 			exit(1);
 			
 		}
@@ -107,7 +108,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"string")!=0)
 			msg="boolean";
 			else{
-				printf("Syntax Error: invalid use of '%s' Operator between '%s' and '%s'\n",tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),globalScope->func[globalScope->FuncCount-1]->name);
+				printf("Syntax Error: in '%s' invalid use of '%s' Operator between '%s' and '%s'\n",globalScope->func[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 			exit(1);	
 			}
 		}
@@ -117,7 +118,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			if((strcmp(getExprType(tree->left,CurrScope),"int")==0||strcmp(getExprType(tree->left,CurrScope),"real")==0)&&(strcmp(getExprType(tree->right,CurrScope),"int")==0||strcmp(getExprType(tree->right,CurrScope),"real")==0))
 			msg="boolean";
 			else{
-				printf("Syntax Error: invalid use of %s Operator between '%s' and '%s' \n",tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),globalScope->func[globalScope->FuncCount-1]->name);
+				printf("Syntax Error: in '%s' invalid use of %s Operator between '%s' and '%s' \n",globalScope->func[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 	
 			}
@@ -129,7 +130,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"boolean")==0)
 			msg="boolean";
 			else{
-				printf("Syntax Error: invalid use of %s Operator  between %s and %s in Func\\Proc %s\n",tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),globalScope->func[globalScope->FuncCount-1]->name);
+				printf("Syntax Error: in '%s' invalid use of %s Operator  between %s and %s\n",globalScope->func[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -151,7 +152,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			}
 			else if(strcmp(msg,"")==0)
 			{
-				printf("Syntax Error: invalid use of %s Operator  between %s and %s= in Func\\Proc %s\n",tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),globalScope->func[globalScope->FuncCount-1]->name);
+				printf("Syntax Error: in '%s' invalid use of %s Operator  between %s and %s= in Func\\Proc %s\n",globalScope->func[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -168,7 +169,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			}
 			else
 			{
-				printf("Syntax Error: invalid use of %s Operator  between %s and %s in Func\\Proc %s\n",tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),globalScope->func[globalScope->FuncCount-1]->name);
+				printf("Syntax Error: in '%s' invalid use of '%s' Operator  between '%s' and '%s' in Func\\Proc '%s'\n",globalScope->func[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -231,7 +232,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 
 	return msg;
 }
-
+//--------------------Make New Scope---------------------------------
 SCOPE* mkSCOPE(char* name)
 {	
 	SCOPE *newScope = (SCOPE*)malloc(sizeof(SCOPE));
@@ -243,28 +244,28 @@ SCOPE* mkSCOPE(char* name)
 	newScope->innerScope=NULL;
 	newScope->upperScope=NULL;
 	return newScope;
-}
+}//--------------------------End Make New Sceope
 
 
-void addFunction(char * name,Var * arguments,node *returnType,int argNum,SCOPE * CurrScope){
+void addFunction(char * name,Var * args,node *returnType,int argNum,SCOPE * CurrScope){
 	int i=0, j=0;
-	Function** Temp;
+	FuncOrProc** Temp;
 	SCOPE * scopes = CurrScope;
 	for(i=0;i<argNum;i++)
 		for(j=0;j<argNum;j++)
-	if(i!=j && strcmp(arguments[j].name,arguments[i].name)==0 )
+	if(i!=j && strcmp(args[j].name,args[i].name)==0 )
 	{
-		printf("Syntax Error: Several arguments named: %s in Func %s() !\n",arguments[i].name,name);
+		printf("Syntax Error: Several arguments named: '%s' in Func %s() !\n",args[i].name,name);
 	exit(1);	
 	}
 	if(scopes->func==NULL)
 	{ 
-		scopes->func=(Function**) malloc(sizeof(Function*));
+		scopes->func=(FuncOrProc**) malloc(sizeof(FuncOrProc*));
 	}
 	else
 	{
 		Temp=scopes->func;
-		scopes->func=(Function**) malloc(sizeof(Function*)*(scopes->FuncCount+1));
+		scopes->func=(FuncOrProc**) malloc(sizeof(FuncOrProc*)*(scopes->FuncCount+1));
 		for(i=0;i<scopes->FuncCount;i++)
 		{		
 
@@ -280,9 +281,9 @@ void addFunction(char * name,Var * arguments,node *returnType,int argNum,SCOPE *
 				scopes->func[i]=Temp[i];
 		}
 	}
-		scopes->func[scopes->FuncCount]=(Function*) malloc(sizeof(Function));
+		scopes->func[scopes->FuncCount]=(FuncOrProc*) malloc(sizeof(FuncOrProc));
 		scopes->func[scopes->FuncCount]->name=name;
-		scopes->func[scopes->FuncCount]->arguments=arguments;
+		scopes->func[scopes->FuncCount]->args=args;
 		
 		if(returnType==NULL)
 		scopes->func[scopes->FuncCount]->returnType=NULL;
@@ -295,7 +296,7 @@ void addFunction(char * name,Var * arguments,node *returnType,int argNum,SCOPE *
 		scopes->func[scopes->FuncCount]->returnType=returnType->token;
 		}
 		scopes->func[scopes->FuncCount]->argNum=argNum;
-		scopes->func[scopes->FuncCount]->findreturn=false;
+		scopes->func[scopes->FuncCount]->hasReturn=false;
 		++(scopes->FuncCount); 
 
 }
@@ -316,7 +317,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 		if(!(strcmp(getExprType(tree->right,CurrScope),"NULL")==0&& (strcmp(getExprType(tree->left,CurrScope),"real*")==0||strcmp(getExprType(tree->left,CurrScope),"int*")==0||strcmp(getExprType(tree->left,CurrScope),"char*")==0)))
 		if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))!=0)
 		{
-			printf("Syntax Error: Not Allowed '=' Operator to use between '%s' and '%s' not the same type!\n",getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),CurrScope->name,globalScope->func[globalScope->FuncCount-1]->name);
+			printf("Syntax Error: in '%s' Not Allowed '=' Operator to use between '%s' and '%s', not the same type!\n",globalScope->func[globalScope->FuncCount-1]->name,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),CurrScope->name);
 		exit(1);	
 		}
 	}
@@ -344,7 +345,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 			if (tree->right)
 				analayzeSyntax(tree->right,finalScope( CurrScope->innerScope));
-        	scope--;
+        	scopeAmount--;
 			return;
 		}
 		
@@ -367,7 +368,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 			if (tree->right)
 				analayzeSyntax(tree->right,finalScope(CurrScope->innerScope));
-        	scope--;
+        	scopeAmount--;
 			return;
 		}
 				
@@ -385,12 +386,12 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 	if (tree->right)
 		analayzeSyntax(tree->right,finalScope( CurrScope->innerScope));
-		if(CurrScope->func[CurrScope->FuncCount-1]->findreturn==false)
+		if(CurrScope->func[CurrScope->FuncCount-1]->hasReturn==false)
 		{
 			printf("Syntax Error: Func %s() must have Return statment!\n",tree->left->token);
 		exit(1);	
 		}
-        scope--;		
+        scopeAmount--;		
 		return;
 	}
     else if(strcmp(tree->token, "PROC") == 0)
@@ -419,7 +420,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 	if (tree->right)
 		analayzeSyntax(tree->right,finalScope( CurrScope->innerScope));
-		scope--;	
+		scopeAmount--;	
 		return;
     }
 
@@ -436,7 +437,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 	if (tree->right)
 		analayzeSyntax(tree->right,globalScope);
-		scope--;
+		scopeAmount--;
 		return;
 	}
 
@@ -449,7 +450,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 	if (tree->right)
 		analayzeSyntax(tree->right,finalScope( CurrScope->innerScope));
-        scope--;
+        scopeAmount--;
 		return;
                
     }       
@@ -465,10 +466,10 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 		{
 			pushScopes(CurrScope,tree->token);
 			analayzeSyntax(tree->right->left,finalScope( CurrScope->innerScope));
-			scope--;
+			scopeAmount--;
 			pushScopes(CurrScope,tree->token);
 			analayzeSyntax(tree->right->right->left,finalScope( CurrScope->innerScope));
-        	scope--;
+        	scopeAmount--;
 			return;
 		}
 	}
@@ -497,7 +498,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 			{
 				if(0==strcmp(getExprType(tree->left,CurrScope),Temp->upperScope->func[Temp->upperScope->FuncCount-1]->returnType))
 				{
-					Temp->upperScope->func[Temp->upperScope->FuncCount-1]->findreturn=true;
+					Temp->upperScope->func[Temp->upperScope->FuncCount-1]->hasReturn=true;
 				}
 				else
 				{
@@ -521,7 +522,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope){
 	
 	if (tree->right)
 		analayzeSyntax(tree->right,finalScope( CurrScope->innerScope));
-        scope--;
+        scopeAmount--;
 		return;			
 	}
 	else if(strcmp(tree->token, "solovar") == 0 )
@@ -553,7 +554,7 @@ char* findFuncInScopes(node * tree,SCOPE * CurrScope)
 {
 	int i=0, j=0,t;
 	SCOPE* Temp=CurrScope;
-	Var* arguments;
+	Var* args;
 	bool find = false, flag = true;
 	while(Temp!=NULL)
 	{
@@ -563,12 +564,12 @@ char* findFuncInScopes(node * tree,SCOPE * CurrScope)
 			find=true;
 			flag=true;
 			int count=0;
-			arguments=callFuncArguments(CurrScope,tree->right->left,&count);
+			args=callFuncArguments(CurrScope,tree->right->left,&count);
 			if(count==Temp->func[i]->argNum)
 			{
 				for(j=0, t=count-1; j<count; j++,t--)
 				{
-					if(strcmp(arguments[j].type,Temp->func[i]->arguments[t].type)!=0)
+					if(strcmp(args[j].type,Temp->func[i]->args[t].type)!=0)
 						flag=false;
 				}
 				if(flag==true)
