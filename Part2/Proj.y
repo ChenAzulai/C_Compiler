@@ -48,7 +48,7 @@
 %type <node>  code s nestedDec 
 %%
 
-s: cmt code { syntaxAnalyzer($2,globalScope);}; 
+s: cmt code { analayzeSyntax($2,globalScope);}; 
 
 code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 
