@@ -5,7 +5,8 @@ int AdditionalMain=0;
 SCOPE* globalScope=NULL;
 
 
-void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope){
+void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
+{
 	int i=0, j=0;
 	if(numOfVars==0)
 		return;
@@ -629,7 +630,7 @@ exit(1);
 
 Var * mkArgs(node *tree,int *count){
 	int i=0, j=0;
-	Var  *arr=NULL,arr2[50];
+	Var  *Args=NULL,tempArgs[50];
 	char* type,*len;
 	if(tree!=NULL)
 	{
@@ -649,9 +650,9 @@ Var * mkArgs(node *tree,int *count){
 				node * tmptree;
 				tmptree=Temp->right->left;
 				do{
-				arr2[*count].name=tmptree->token;
-				arr2[*count].type=type;
-				arr2[*count].len=len;
+				tempArgs[*count].name=tmptree->token;
+				tempArgs[*count].type=type;
+				tempArgs[*count].len=len;
 				(*count)++;
 				if(tmptree->left==NULL)
 					tmptree=NULL;
@@ -673,9 +674,9 @@ Var * mkArgs(node *tree,int *count){
 			if(Temp->left->left!=NULL)
 			len=Temp->left->left->left->token;
 			do{
-			arr2[*count].name=tmptree->token;
-			arr2[*count].type=type;
-			arr2[*count].len=len;
+			tempArgs[*count].name=tmptree->token;
+			tempArgs[*count].type=type;
+			tempArgs[*count].len=len;
 			(*count)++;
 			if(tmptree->left==NULL)
 				tmptree=NULL;
@@ -683,35 +684,35 @@ Var * mkArgs(node *tree,int *count){
 				tmptree=tmptree->left->left;
 			}while(tmptree!=NULL);
 		}
-		arr=(Var*)malloc(sizeof(Var)*(*count));
+		Args=(Var*)malloc(sizeof(Var)*(*count));
 		for(i=0;i<*count;i++)
 		{
 			for(j=0;j<*count;j++){
 			}
-			arr[i].name=arr2[i].name;
-			arr[i].type=arr2[i].type;
+			Args[i].name=tempArgs[i].name;
+			Args[i].type=tempArgs[i].type;
 		}
 	}
-	return arr;
+	return Args;
 }
 
 
 Var* callFuncArguments(SCOPE * CurrScope,node *tree,int * count)
 {
 	int i=0, j=0;
-	Var  *arr=NULL,arr2[50];
+	Var *arguments=NULL,temp[50];
 	char* type,*len;
 	while(tree!=NULL)
 	{
-		arr2[(*count)++].type=getExprType(tree->left,CurrScope);
+		temp[(*count)++].type=getExprType(tree->left,CurrScope);
 		if(tree->right!=NULL)
 			tree=tree->right->left;
 		else
 			tree=NULL;
 
 	}
-	arr=(Var*)malloc(sizeof(Var)*(*count));
+	arguments=(Var*)malloc(sizeof(Var)*(*count));
 	for(i = 0; i<*count; i++)
-		arr[i].type=arr2[i].type;
-	return arr;
+		arguments[i].type=temp[i].type;
+	return arguments;
 }
