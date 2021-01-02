@@ -6,21 +6,22 @@
 #include "AST.h"
 
 typedef struct Var
-	{int isArg;
+{
 	char *name;
 	char *value;
 	char *type;
 	char * len;
+	int isArg;
 }Var;
 
-typedef struct Function 
+typedef struct FuncOrProc 
 {
 	char * name;
-	Var * arguments;
 	char *returnType; 
 	int argNum;
-	bool findreturn;
-}Function;
+	bool hasReturn;
+	Var * args;
+}FuncOrProc;
 
 
 typedef struct SCOPE
@@ -29,7 +30,7 @@ typedef struct SCOPE
 	Var * var;
 	int VarCount;
 	int FuncCount;
-	Function ** func;
+	FuncOrProc ** func;
 	struct SCOPE * innerScope;
 	struct SCOPE * upperScope;
 }SCOPE;
