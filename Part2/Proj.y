@@ -179,9 +179,11 @@ int main()
 	int res = yyparse();
 	//printf("Res:%d \n", res);
 	//printf("Main Check: %d \n",AdditionalMain);
+	if(res==1)
+		exit(1);
 	if(res==0&&AdditionalMain==1)
 	{
-	printf("Syntax & Semantic Checked-OK!\nProgram Works!\n"); 
+	printf("Syntax & Semantic Checked-OK!\n"); 
 	}
 	else if(AdditionalMain==0)
 	{
