@@ -4,7 +4,6 @@ static int scopeAmount=0;
 int AdditionalMain=0;
 SCOPE* globalScope=NULL;
 
-//------------------------Add var to Scope--------------------------------
 void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
 {
 	int i=0, j=0;
@@ -65,9 +64,9 @@ void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
 		j++;
 	}
 
-}//--------------------end Addvar to Scope-------------------------------
+}
 
-//-----------------------Get the Expression Type------------------------------
+
 char * getExprType(node * tree,SCOPE* CurrScope){
 	char* msg=(char*)malloc(sizeof(char)*7);
 	msg="";
@@ -228,9 +227,9 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		msg=findVar(tree,CurrScope);
 
 	return msg;
-}//-------------------End get the Expression Type---------------------------------
+}
 
-//--------------------Make New Scope---------------------------------
+
 SCOPE* mkSCOPE(char* name)
 {	
 	SCOPE *newScope = (SCOPE*)malloc(sizeof(SCOPE));
@@ -242,7 +241,7 @@ SCOPE* mkSCOPE(char* name)
 	newScope->innerScope=NULL;
 	newScope->upperScope=NULL;
 	return newScope;
-}//--------------------------End Make New Sceope----------------------
+}
 
 
 void addFunction(char * name,Var * args,node *returnType,int argNum,SCOPE * CurrScope){
@@ -298,7 +297,7 @@ void addFunction(char * name,Var * args,node *returnType,int argNum,SCOPE * Curr
 		++(scopes->FuncCount); 
 }
 
-//------------------------Find Last Scope---------------------
+
 SCOPE* finalScope(SCOPE * scopes)
 {
 	SCOPE * lastScope=scopes;//temp scope to get the last scope.
@@ -306,7 +305,7 @@ SCOPE* finalScope(SCOPE * scopes)
 	while(lastScope->innerScope!=NULL)
 		lastScope=lastScope->innerScope;
 	return lastScope;
-}//---------------End Find last Scope-------------------
+}
 
 void analayzeSyntax(node *tree,SCOPE * CurrScope)
 {	
