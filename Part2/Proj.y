@@ -44,15 +44,15 @@
 %type <node> addsExp nestedStmt body_stmt pointerExp nestedExp function 
 %type <node> elem values condition expr lhs nestedAssign body 
 %type <node> statement typeOfVar typeStr typeSt nestedIden declare expBody
-%type <node> procBody paramList paramProc proc procs
+%type <node> procBody paramList paramProc proc nestedProc
 %type <node>  code s nestedDec 
 %%
 
 s: cmt code { syntaxAnalyzer($2,globalScope);}; 
 
-code: procs {$$=mkNode("CODE",$1,NULL);};
+code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 
-procs: procs proc {$$=mkNode("",$1,$2);}
+nestedProc: nestedProc proc {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
 proc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND cmt RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY {$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));}
@@ -66,7 +66,7 @@ function: IDEN expBody {$$=mkNode("Call func",mkNode($1,NULL,NULL),mkNode("ARGS"
 paramList: nestedIden COL typeSt {$$=mkNode("(",$3,mkNode("",$1,mkNode(")",NULL,NULL)));}
 	|  paramList SEMICOL cmt  paramList {$$=mkNode("",$1,mkNode("",$4,NULL));}	;
 
-procBody: cmt procs nestedDec nestedStmt {$$=mkNode("BODY", mkNode(" ",$2,NULL),mkNode(" ",$3,mkNode(" ",$4,mkNode(" ",NULL,NULL))));};
+procBody: cmt nestedProc nestedDec nestedStmt {$$=mkNode("BODY", mkNode(" ",$2,NULL),mkNode(" ",$3,mkNode(" ",$4,mkNode(" ",NULL,NULL))));};
 
 declare: VAR nestedIden COL typeSt cmt SEMICOL cmt {$$=mkNode("var", $4,$2);};
 
@@ -100,7 +100,7 @@ body_stmt: statement {$$=$1;}
 	|proc {$$=$1;} 
 	|SEMICOL  {$$=mkNode("",NULL,NULL);};
 
-body: OPEN_CURLY procs cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
+body: OPEN_CURLY nestedProc cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
 
 
 statement: IF OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$5);}%prec IF
