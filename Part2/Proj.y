@@ -41,124 +41,86 @@
 %nonassoc ELSE 
 
 
-%type <node> address_expr stmnts stmnt_block derefrence_expr expr_list call_func 
-%type <node> expr lhs assmnt_stmnt new_block 
-%type <node> stmnt type_pro type_id var_id declear paren_expr
-%type <node> pro_body para_list para_pro procedure procedures
-%type <node>  program project declares 
+%type <node> addsExp nestedStmt body_stmt pointerExp nestedExp function 
+%type <node> elem values condition expr lhs nestedAssign body 
+%type <node> statement typeOfVar typeStr typeSt nestedIden declare expBody
+%type <node> procBody paramList paramProc proc procs
+%type <node>  code s nestedDec 
 %%
 
-project: cmmnt program { syntaxAnalyzer($2,globalScope);}; 
+s: cmt code { syntaxAnalyzer($2,globalScope);}; 
 
-program: procedures {$$=mkNode("CODE",$1,NULL);};
-cmmnt: COMMENT cmmnt {;}| ;
+code: procs {$$=mkNode("CODE",$1,NULL);};
 
-procedures: procedures  procedure {$$=mkNode("",$1,$2);}
+procs: procs proc {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
-procedure: FUNC IDEN OPEN_ROUND para_pro CLOSE_ROUND cmmnt RETURN type_pro  OPEN_CURLY  pro_body CLOSE_CURLY
-{$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));}
-| PROC IDEN OPEN_ROUND para_pro CLOSE_ROUND  OPEN_CURLY  pro_body CLOSE_CURLY
-{$$=mkNode("PROC",mkNode($2,mkNode("",NULL,NULL),NULL),mkNode("ARGS",$4,$7));};
+proc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND cmt RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY {$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));}
+	| PROC IDEN OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY {$$=mkNode("PROC",mkNode($2,mkNode("",NULL,NULL),NULL),mkNode("ARGS",$4,$7));};
 
-para_pro: para_list {$$=$1;}
+paramProc: paramList {$$=$1;}
 	| {$$=NULL;};
 
+function: IDEN expBody {$$=mkNode("Call func",mkNode($1,NULL,NULL),mkNode("ARGS",$2,NULL));} ;
 
-para_list: var_id COL type_id {$$=mkNode("(",$3,mkNode("",$1,mkNode(")",NULL,NULL)));}
-	|  para_list SEMICOL cmmnt  para_list {$$=mkNode("",$1,mkNode("",$4,NULL));}	;
+paramList: nestedIden COL typeSt {$$=mkNode("(",$3,mkNode("",$1,mkNode(")",NULL,NULL)));}
+	|  paramList SEMICOL cmt  paramList {$$=mkNode("",$1,mkNode("",$4,NULL));}	;
 
-pro_body: cmmnt  procedures declares stmnts 
-{
-	$$=mkNode("BODY", mkNode(" ",$2,NULL),mkNode(" ",$3,mkNode(" ",$4,mkNode(" ",NULL,NULL))));
-};
+procBody: cmt procs nestedDec nestedStmt {$$=mkNode("BODY", mkNode(" ",$2,NULL),mkNode(" ",$3,mkNode(" ",$4,mkNode(" ",NULL,NULL))));};
 
+declare: VAR nestedIden COL typeSt cmt SEMICOL cmt {$$=mkNode("var", $4,$2);};
 
-declares: declares declear  {$$=mkNode("",$1,$2);} | {$$=NULL;}  ;
+nestedDec: nestedDec declare  {$$=mkNode("",$1,$2);} 
+	| {$$=NULL;}  ;
  
-declear: VAR var_id COL type_id cmmnt SEMICOL cmmnt
-{
-	$$=mkNode("var", $4,$2);
-};
 
-var_id: IDEN COMMA var_id {$$=mkNode($1, mkNode(" ", $3, NULL),NULL);}
+nestedIden: IDEN COMMA nestedIden {$$=mkNode($1, mkNode(" ", $3, NULL),NULL);}
 	| IDEN {$$=mkNode($1, NULL, NULL);} ;
-
-type_id: BOOL {$$=mkNode("boolean", NULL, NULL);}
-	| STRING OPEN_SQUARE NUM CLOSE_SQUARE {$$=mkNode("string", mkNode("[",mkNode("$3",NULL,NULL),NULL), NULL);}
-	| CHAR {$$=mkNode("char", NULL, NULL);}
+ 
+typeOfVar:BOOL {$$=mkNode("boolean", NULL, NULL);}
 	| INT {$$=mkNode("int", NULL, NULL);}
 	| REAL {$$=mkNode("real", NULL, NULL);}
-	| INT_P {$$=mkNode("int*", NULL, NULL);}
-	| CHAR_P {$$=mkNode("char*", NULL, NULL);}
-	| REAL_P {$$=mkNode("real*", NULL, NULL);};
-
-
-
-type_pro: BOOL {$$=mkNode("boolean", NULL, NULL);}
- 	| STRING {$$=mkNode("string", NULL, NULL);}
 	| CHAR {$$=mkNode("char", NULL, NULL);}
-	| INT {$$=mkNode("int", NULL, NULL);}
-	| REAL {$$=mkNode("real", NULL, NULL);}
-	| INT_P {$$=mkNode("int*", NULL, NULL);}
-	| CHAR_P {$$=mkNode("char*", NULL, NULL);}
-	| REAL_P {$$=mkNode("real*", NULL, NULL);};
-	
+ 	| INT_P {$$=mkNode("int*", NULL, NULL);}
+	| REAL_P {$$=mkNode("real*", NULL, NULL);}
+	| CHAR_P {$$=mkNode("char*", NULL, NULL);};
 
-stmnts: stmnts stmnt {$$=mkNode("",$1,$2);} 
+typeSt: typeOfVar {$$=$1;}
+	| STRING OPEN_SQUARE NUM CLOSE_SQUARE {$$=mkNode("string", mkNode("[",mkNode("$3",NULL,NULL),NULL), NULL);};
+
+typeStr: typeOfVar {$$=$1;}
+	| STRING {$$=mkNode("string", NULL, NULL);};
+
+
+nestedStmt: nestedStmt statement {$$=mkNode("",$1,$2);} 
 	| {$$=NULL;};
 
-stmnt_block: stmnt {$$=$1;}|declear {$$=$1;}|procedure {$$=$1;} 
+body_stmt: statement {$$=$1;}
+	|declare {$$=$1;}
+	|proc {$$=$1;} 
 	|SEMICOL  {$$=mkNode("",NULL,NULL);};
 
-new_block: OPEN_CURLY procedures cmmnt declares stmnts CLOSE_CURLY cmmnt
-{
-	$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));
-};
+body: OPEN_CURLY procs cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
 
 
-stmnt: IF OPEN_ROUND expr CLOSE_ROUND  stmnt_block 
-{
-	$$=mkNode("if",
-	mkNode("(", $3, 
-	mkNode(")",NULL,NULL)),$5);
-}%prec IF
-| IF OPEN_ROUND expr CLOSE_ROUND   stmnt_block    ELSE  stmnt_block  
-{
-	$$=mkNode("if-else",
-	mkNode("", $3, 
-	mkNode("",NULL,NULL)),
-	mkNode("",$5,
-	mkNode("",$7,NULL)));
-}
-| WHILE cmmnt OPEN_ROUND expr CLOSE_ROUND  stmnt_block  
-{
-	$$=mkNode("while",
-	mkNode("(", $4, 
-	mkNode(")",NULL,NULL)),$6);
-}
-| assmnt_stmnt SEMICOL cmmnt {$$=mkNode("",$1,NULL);}
-| expr SEMICOL cmmnt {$$=$1;}
-| RETURN expr SEMICOL cmmnt {$$=mkNode("return",$2,NULL);}
-| new_block {$$=$1;};
+statement: IF OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$5);}%prec IF
+	| IF OPEN_ROUND expr CLOSE_ROUND body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $3, mkNode("",NULL,NULL)),mkNode("",$5,mkNode("",$7,NULL)));}
+	| WHILE cmt OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("while",mkNode("(", $4,	mkNode(")",NULL,NULL)),$6);}
+	| nestedAssign SEMICOL cmt {$$=mkNode("",$1,NULL);}
+	| expr SEMICOL cmt {$$=$1;}
+	| RETURN expr SEMICOL cmt {$$=mkNode("return",$2,NULL);}
+	| body {$$=$1;};
 
 
-assmnt_stmnt: lhs EQUAL expr 
-{
-	$$=mkNode("=",$1,$3);
-};
+nestedAssign: lhs EQUAL expr {$$=mkNode("=",$1,$3);};
 
 
-lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE 
-{
-	$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);
-} 
-| IDEN {$$=mkNode($1,NULL,NULL);}
-| address_expr {$$=$1;}
-| derefrence_expr{$$=$1;} ;
+lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
+	| IDEN {$$=mkNode($1,NULL,NULL);}
+	| addsExp {$$=$1;}
+	| pointerExp{$$=$1;} ;
 
-expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
-         |expr IS_EQ expr {$$=mkNode("==",$1,$3);}
+condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr DIFF expr {$$=mkNode("!=",$1,$3);}
 	| expr BIG_EQ expr {$$=mkNode(">=",$1,$3);}
 	| expr BIGGER expr {$$=mkNode(">",$1,$3);}
@@ -169,49 +131,46 @@ expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| expr PLUS expr {$$=mkNode("+",$1,$3);}
 	| expr MINUS expr {$$=mkNode("-",$1,$3);}
 	| expr MUL expr {$$=mkNode("*",$1,$3);}
-	| expr DIV expr {$$=mkNode("/",$1,$3);}
-	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
-	| address_expr {$$=$1;}
-	| derefrence_expr {$$=$1;}
-	| call_func cmmnt {$$=$1;}
-	| NUM {$$=mkNode($1,mkNode("INT",NULL,NULL),NULL);}
+	| expr DIV expr {$$=mkNode("/",$1,$3);};
+
+values: NUM {$$=mkNode($1,mkNode("INT",NULL,NULL),NULL);}
 	| HEX_NUM {$$=mkNode($1,mkNode("HEX", NULL, NULL),NULL);}
 	| CONST_CHAR {$$=mkNode($1,mkNode("CHAR", NULL, NULL),NULL);}
 	| REAL_NUM {$$=mkNode($1,mkNode("REAL", NULL, NULL),NULL);}
-	| CONST_STRING {$$=mkNode($1,mkNode("STRING", NULL, NULL),NULL);}
-	| FALSE {$$=mkNode($1,mkNode("BOOLEAN", NULL, NULL),NULL);}
+	| CONST_STRING {$$=mkNode($1,mkNode("STRING", NULL, NULL),NULL);};
+
+elem: FALSE {$$=mkNode($1,mkNode("BOOLEAN", NULL, NULL),NULL);}
 	| TRUE {$$=mkNode($1,mkNode("BOOLEAN", NULL, NULL),NULL);}
-	| SIZE IDEN SIZE 
-	{
-		$$=mkNode("|",
-		mkNode($2,NULL,NULL),
-		mkNode("|",NULL,NULL));
-	}
-	| IDEN OPEN_SQUARE expr CLOSE_SQUARE 
-	{$$=mkNode("solovar",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
-	| IDEN {$$=mkNode("solovar",mkNode($1,NULL,NULL),NULL);}
-	| NULL1 {$$=mkNode("null",NULL,NULL);};
-address_expr: ADDS IDEN {$$=mkNode("&",mkNode($2,NULL,NULL),NULL);}
+	| NULL1 {$$=mkNode("null",NULL,NULL);}
+	| SIZE IDEN SIZE {$$=mkNode("|",mkNode($2,NULL,NULL),mkNode("|",NULL,NULL));}
+	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("solovar",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
+	| IDEN {$$=mkNode("solovar",mkNode($1,NULL,NULL),NULL);};
+
+expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
+	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
+        | condition {$$=$1;}
+	| values {$$=$1;}
+	| addsExp {$$=$1;}
+	| pointerExp {$$=$1;}
+	| function cmt {$$=$1;}
+	| elem {$$=$1;};
+
+addsExp: ADDS IDEN {$$=mkNode("&",mkNode($2,NULL,NULL),NULL);}
 	| ADDS OPEN_ROUND IDEN CLOSE_ROUND {$$=mkNode("&",mkNode("(",mkNode($3,NULL,NULL),NULL),mkNode(")",NULL,NULL));}
-	| ADDS IDEN OPEN_SQUARE expr CLOSE_SQUARE 
-	{$$=mkNode("&", mkNode($2,mkNode("[",$4,mkNode("]",NULL,NULL)),NULL),NULL);}
-	| ADDS OPEN_ROUND IDEN OPEN_SQUARE expr CLOSE_SQUARE CLOSE_ROUND 
-	{
-		$$=mkNode("&",
-		mkNode("(", 
-		mkNode($3,mkNode("[",$5,mkNode("]",NULL,NULL)),NULL)
-		,mkNode(")",NULL,NULL)),NULL);
-	};
+	| ADDS IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("&", mkNode($2,mkNode("[",$4,mkNode("]",NULL,NULL)),NULL),NULL);}
+	| ADDS OPEN_ROUND IDEN OPEN_SQUARE expr CLOSE_SQUARE CLOSE_ROUND {$$=mkNode("&",mkNode("(",mkNode($3,mkNode("[",$5,mkNode("]",NULL,NULL)),NULL),mkNode(")",NULL,NULL)),NULL);};
 
+pointerExp: POINTER IDEN {$$=mkNode("^",mkNode($2,NULL,NULL),NULL);};
 
-derefrence_expr: POINTER IDEN {$$=mkNode("^",mkNode($2,NULL,NULL),NULL);};
-
-expr_list: expr COMMA expr_list {$$=mkNode("",$1,mkNode(",",$3,NULL));} 
+nestedExp: expr COMMA nestedExp {$$=mkNode("",$1,mkNode(",",$3,NULL));} 
 	| expr {$$=mkNode("",$1,NULL);}
 	| {$$=NULL;};
 
-paren_expr:OPEN_ROUND expr_list CLOSE_ROUND {$$=$2;}; 
-call_func: IDEN paren_expr {$$=mkNode("Call func",mkNode($1,NULL,NULL),mkNode("ARGS",$2,NULL));} ;
+expBody:OPEN_ROUND nestedExp CLOSE_ROUND {$$=$2;}; 
+
+cmt: COMMENT cmt {;}
+	| {;};
+
 %%
 #include "lex.yy.c"
 
