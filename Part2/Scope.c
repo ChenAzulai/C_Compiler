@@ -4,7 +4,7 @@ static int scopeAmount=0;
 int AdditionalMain=0;
 SCOPE* globalScope=NULL;
 
-void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
+void addVar(Var * args,int numOfVars,SCOPE * CurrScope)
 {
 	int i=0, j=0;
 	if(numOfVars==0)
@@ -13,17 +13,19 @@ void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
 	SCOPE * thisScope=CurrScope;
 	for(i=0;i<numOfVars;i++)
 		for(j=0;j<numOfVars;j++)
-	if(i!=j && strcmp(args[j].name,args[i].name)==0)
 	{
-		printf("Syntax Error: Not allowed to declare the same Var '%s' more then once in the same scope",args[i].name);
-		SCOPE * t=thisScope->upperScope;
-		while(t->upperScope!=NULL && t->upperScope->FuncCount==0)
-			t=t->upperScope;
-		if(t->ForP!=NULL)
-		printf("( in %s() )\n",t->ForP[t->FuncCount-1]->name);
+		if(i!=j && strcmp(args[j].name,args[i].name)==0)
+		{
+			printf("Syntax Error: Not allowed to declare the same Var '%s' more then once in the same scope",args[i].name);
+			SCOPE * t=thisScope->upperScope;
+			while(t->upperScope!=NULL && t->upperScope->FuncCount==0)
+				t=t->upperScope;
+			if(t->ForP!=NULL)
+			printf("( in %s() )\n",t->ForP[t->FuncCount-1]->name);
 			else
-		printf("\n");
-		exit(1);
+				printf("\n");
+				exit(1);
+		}
 	}
 	if(thisScope->var==NULL)
 	{ 
@@ -57,8 +59,6 @@ void addVar(Var * args,int numOfVars,int isArg,SCOPE * CurrScope)
 	while(j<numOfVars)
 	{
 		thisScope->var[thisScope->VarCount].name=args[j].name;
-		thisScope->var[thisScope->VarCount].value=NULL;
-		thisScope->var[thisScope->VarCount].isArg=isArg;
 		thisScope->var[thisScope->VarCount].len=args[j].len;
 		thisScope->var[(thisScope->VarCount)++].type=args[j].type;
 		j++;
@@ -85,10 +85,10 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(tree->left->token,"STRING")==0)
 			msg= "string";
 		if(strcmp(tree->left->token,"BOOLEAN")==0)
-			msg= "boolean";
+			msg= "bool";
 		if(strcmp(tree->token,"!")==0)
-		if(strcmp(getExprType(tree->left,CurrScope),"boolean")==0)
-			msg="boolean";
+		if(strcmp(getExprType(tree->left,CurrScope),"bool")==0)
+			msg="bool";
 		else
 		{
 			printf("Syntax Error: The ! Operator can be used only for boolean types!\n");
@@ -105,7 +105,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(tree->token,"==")==0||strcmp(tree->token,"!=")==0)
 		{
 			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"string")!=0)
-			msg="boolean";
+			msg="bool";
 			else{
 				printf("Syntax Error: in '%s' invalid use of '%s' Operator between '%s' and '%s'\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 			exit(1);	
@@ -115,7 +115,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(tree->token,">=")==0||strcmp(tree->token,">")==0||strcmp(tree->token,"<=")==0||strcmp(tree->token,"<")==0)
 		{
 			if((strcmp(getExprType(tree->left,CurrScope),"int")==0||strcmp(getExprType(tree->left,CurrScope),"real")==0)&&(strcmp(getExprType(tree->right,CurrScope),"int")==0||strcmp(getExprType(tree->right,CurrScope),"real")==0))
-			msg="boolean";
+			msg="bool";
 			else{
 				printf("Syntax Error: in '%s' invalid use of %s Operator between '%s' and '%s' \n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
@@ -126,8 +126,8 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		if(strcmp(tree->token,"&&")==0||strcmp(tree->token,"||")==0)
 		{
 
-			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"boolean")==0)
-			msg="boolean";
+			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"bool")==0)
+			msg="bool";
 			else{
 				printf("Syntax Error: in '%s' invalid use of %s Operator  between %s and %s\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
@@ -219,7 +219,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		}
 		if(strcmp(tree->token,"(")==0)
 			msg=getExprType(tree->left,CurrScope);
-		if(strcmp(tree->token,"Call func")==0)
+		if(strcmp(tree->token,"callFunction")==0)
 			msg=findFuncInScopes(tree,CurrScope);
 		
 	}
@@ -313,8 +313,6 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
 	{
 		if(!(strcmp(getExprType(tree->right,CurrScope),"NULL")==0&& (strcmp(getExprType(tree->left,CurrScope),"real*")==0||strcmp(getExprType(tree->left,CurrScope),"int*")==0||strcmp(getExprType(tree->left,CurrScope),"char*")==0))&& strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))!=0)
 			{
-		//if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))!=0)
-		//{
 			printf("Syntax Error: in '%s' Not Allowed '=' Operator to use between '%s' and '%s', not the same type!\n",globalScope->ForP[globalScope->FuncCount-1]->name,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope),CurrScope->name);
 		exit(1);	
 		}
@@ -323,13 +321,13 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
 	{
 		int VarCount=0;
 		Var * var=mkArgs(tree,&VarCount);
-		addVar(var,VarCount,0,CurrScope);
+		addVar(var,VarCount,/*0,*/CurrScope);
 		
 		
 	}
 	else if(strcmp(tree->token, "if") == 0)
 	{
-		if(strcmp(getExprType(tree->left->left,CurrScope),"boolean")!=0)
+		if(strcmp(getExprType(tree->left->left,CurrScope),"bool")!=0)
 		{
 			printf("Syntax Error: Inside 'if' condition has to be Boolean Type!\n");
 	exit(1);		
@@ -352,7 +350,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
 	}
 		else if(strcmp(tree->token, "while") == 0)
 	{
-		if(strcmp(getExprType(tree->left->left,CurrScope),"boolean")!=0)
+		if(strcmp(getExprType(tree->left->left,CurrScope),"bool")!=0)
 		{
 			printf("Syntax Error: Inside 'while' condition has to be Boolean Type!\n");
 		exit(1);	
@@ -378,7 +376,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
 		Var * arg=mkArgs(tree->left->right->left,&count);
 		addFunction(tree->left->token,arg,tree->left->right->right->left,count,CurrScope);
 		pushScopes(CurrScope,tree->token);
-		addVar(arg,count,1,finalScope(CurrScope));
+		addVar(arg,count,finalScope(CurrScope));
 	if (tree->left) 
 		analayzeSyntax(tree->left,finalScope( CurrScope->innerScope));
 	
@@ -392,7 +390,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
         scopeAmount--;		
 		return;
 	}
-    else if(strcmp(tree->token, "PROC") == 0)
+    else if(strcmp(tree->token,"PROC") == 0)
 	{
         int count=0;
 		Var * arg=mkArgs(tree->right->left,&count);
@@ -412,7 +410,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
         }
 		addFunction(tree->left->token,arg,NULL,count,CurrScope);
 		pushScopes(CurrScope,tree->token);
-		addVar(arg,count,1,finalScope(CurrScope));
+		addVar(arg,count,finalScope(CurrScope));
 	if (tree->left) 
 		analayzeSyntax(tree->left,finalScope( CurrScope->innerScope));
 	
@@ -422,7 +420,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
 		return;
     }
 
-	else if(strcmp(tree->token, "Call func") == 0)
+	else if(strcmp(tree->token, "callFunction") == 0)
 	{
 		findFuncInScopes(tree,CurrScope);
 		
@@ -454,7 +452,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
     }       
 	else if(strcmp(tree->token, "if-else") == 0)
 	{
-		if(strcmp(getExprType(tree->left->left,CurrScope),"boolean")!=0)
+		if(strcmp(getExprType(tree->left->left,CurrScope),"bool")!=0)
 		{
 			printf("Syntax Error: Inside 'if' condition has to be Boolean Type!\n");
 		exit(1);	
