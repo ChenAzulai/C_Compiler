@@ -8,10 +8,8 @@
 typedef struct Var
 {
 	char *name;
-	char *value;
 	char *type;
 	char * len;
-	int isArg;
 }Var;
 
 typedef struct FuncOrProc 
@@ -30,7 +28,7 @@ typedef struct SCOPE
 	Var * var;
 	int VarCount;
 	int FuncCount;
-	FuncOrProc ** func;
+	FuncOrProc ** ForP; //Function or Proc array in array
 	struct SCOPE * innerScope;
 	struct SCOPE * upperScope;
 }SCOPE;
@@ -40,7 +38,7 @@ extern int AdditionalMain;
 SCOPE* mkSCOPE(char *);
 SCOPE* finalScope(SCOPE *);
 void addFunction(char * , Var * , node *, int , SCOPE*);
-void addVar(Var * , int , int , SCOPE *);
+void addVar(Var * , int ,SCOPE *);
 void analayzeSyntax(node *, SCOPE *);
 void pushScopes(SCOPE* , char*);
 char* getExprType(node * , SCOPE*);
