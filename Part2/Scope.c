@@ -74,17 +74,17 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 		msg="NULL";
 	else
 	if(tree->left!=NULL){
-		if(strcmp(tree->left->token,"INT")==0)
+		if(strcmp(tree->left->token,"INT_NUM")==0)
 			msg= "int";
-		if(strcmp(tree->left->token,"HEX")==0)
+		if(strcmp(tree->left->token,"HEX_NUM")==0)
 			msg= "hex";
-		if(strcmp(tree->left->token,"CHAR")==0)
+		if(strcmp(tree->left->token,"CONST_CHAR")==0)
 			msg= "char";
-		if(strcmp(tree->left->token,"REAL")==0)
+		if(strcmp(tree->left->token,"REAL_NUM")==0)
 			msg= "real";
-		if(strcmp(tree->left->token,"STRING")==0)
+		if(strcmp(tree->left->token,"CONST_STRING")==0)
 			msg= "string";
-		if(strcmp(tree->left->token,"BOOLEAN")==0)
+		if(strcmp(tree->left->token,"T_F_BOOLEAN")==0)
 			msg= "bool";
 		if(strcmp(tree->token,"!")==0)
 		if(strcmp(getExprType(tree->left,CurrScope),"bool")==0)
@@ -191,7 +191,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			msg="real*";
 			else
 			{
-				printf("Syntax Error: Incorrect use of %s on %s \n",tree->token,msg);
+				printf("Syntax Error: Incorrect use of '%s' on %s type \n",tree->token,msg);
 				exit(1);
 			}
 		}
@@ -203,17 +203,19 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 				msg=getExprType(tree->left,CurrScope);
 			
 			if(strcmp(msg,"char*")==0)
-			msg="char";
+				msg="char";
 			else
+
 			if(strcmp(msg,"int*")==0)
-			msg="int";
+				msg="int";
 			else
+
 			if(strcmp(msg,"real*")==0)
-			msg="real";
+				msg="real";
 			else
 			{
-				printf("Syntax Error: Incorrect use of %s on %s \n",tree->token,msg);
-			exit(1);	
+				printf("Syntax Error: Incorrect use of '%s' on %s type \n",tree->token,msg);
+				exit(1);	
 			}
 
 		}
