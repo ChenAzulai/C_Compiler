@@ -7,7 +7,8 @@
 
 
 	int yylex();
-	int yyerror(char *e);
+	int yyerror(char *);
+	void Check(int);
 
 %}
 
@@ -48,7 +49,7 @@
 %type <node>  code s nestedDec 
 %%
 
-s: cmt code { analayzeSyntax($2,globalScope);}; 
+s: cmt code {analayzeSyntax($2,globalScope);}; 
 
 code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 
@@ -176,43 +177,32 @@ cmt: COMMENT cmt {;}
 %%
 #include "lex.yy.c"
 
-int main()
+void main()
 {
-	int res = yyparse();
-	//printf("Res:%d \n", res);
-	//printf("Main Check: %d \n",AdditionalMain);
-	if(res==1)
-		exit(1);
-	if(res==0&&AdditionalMain==1)
-	{
-	printf("Syntax & Semantic Checked-OK!\n"); 
-	}
-	else if(AdditionalMain==0)
-	{
-		printf("Syntax Error: proc Main() was not declared in the Code! \n");
-		exit(1);
-	}
-	else if(AdditionalMain==2)
-	{
-		printf("Syntax Error: Allowed only One and only proc Main() in the Code! \n");
-		exit(1);
-	}
-	return res;	
+	int flag;
+	flag=yyparse();
+	Check(flag);
 }
 
-
-int yyerror(char *e)
+int yyerror(char *error)
 {
 	int yydebug=1;
 	fflush(stdout);
-	fprintf(stderr,"%s: Not Accapted: '%s' at line %d! \n" ,e,yytext,yylineno);
+	fprintf(stderr,"%s: Not Accapted: '%s' at line %d! \n" ,error,yytext,yylineno);
 	
 	return 0;
 }
 
-
-
-
-
-
+void Check(int flag){
+	if(flag==1)
+		exit(1);
+	else if(flag==0 &&AdditionalMain==1)
+		printf("Syntax & Semantic Checked-OK!\n"); 
+	else if(AdditionalMain==0){
+		printf("Syntax Error: proc Main() was not declared in the Code! \n");
+		exit(1);}
+	else if(AdditionalMain==2){
+		printf("Syntax Error: Allowed only One and only proc Main() in the Code! \n");
+		exit(1);}
+}
 
