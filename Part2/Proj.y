@@ -18,8 +18,6 @@
     char *string;
 }
 
-
-
 %token <string> COMMENT WHILE IF ELSE 
 %token <string> RETURN
 %token <string> BOOL STRING CHAR_P CHAR INT INT_P PROC
@@ -28,10 +26,10 @@
 %token <string> CONST_STRING REAL_NUM CONST_CHAR NULL1
 %token <string> MAIN IDEN SEMICOL COMMA OPEN_ROUND CLOSE_ROUND OPEN_SQUARE CLOSE_SQUARE OPEN_CURLY CLOSE_CURLY
 %token <string> NUM HEX_NUM TRUE FALSE  REAL REAL_P FUNC COL  POINTER 
-%token <string>	QUOTE DOUBLE_QUOTES BEGIN_COMMENT END_COMMENT 
+%token <string> QUOTE DOUBLE_QUOTES BEGIN_COMMENT END_COMMENT 
 
 %left DIFF SMALLER SMALL_EQ BIG_EQ BIGGER OR AND IS_EQ
-%left PLUS MINUS RETURN
+%left MINUS PLUS RETURN
 %left MUL DIV
 %left SEMICOL EQUAL 
 %right EX_MARK CLOSE_CURLY
@@ -45,24 +43,26 @@
 %type <node> addsExp nestedStmt body_stmt pointerExp nestedExp function 
 %type <node> elem values mathExp condition expr lhs nestedAssign body 
 %type <node> statement typeOfVar typeStr typeSt nestedIden declare expBody
-%type <node> procBody paramList paramProc proc nestedProc
+%type <node> procBody paramList paramProc procOrFunc nestedProc
 %type <node>  code s nestedDec 
-%%
 
-s: cmt code {analayzeSyntax($2,globalScope);}; 
+%%
+s: cmt code { analayzeSyntax($2,globalScope);}; 
 
 code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 
-nestedProc: nestedProc proc {$$=mkNode("",$1,$2);}
+nestedProc: nestedProc procOrFunc {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
-proc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND cmt RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY {$$=mkNode("FUNC",mkNode($2,mkNode(" ",NULL,NULL),mkNode("ARGS",$4,mkNode("Return",$8,NULL))),mkNode("",$10,NULL));}
-	| PROC IDEN OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY {$$=mkNode("PROC",mkNode($2,mkNode("",NULL,NULL),NULL),mkNode("ARGS",$4,$7));};
+procOrFunc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND cmt RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY 
+{$$=mkNode("FUNC",mkNode($2,mkNode("(",NULL,NULL),mkNode("arguments",$4,mkNode("RETURN",$8,NULL))),mkNode("",$10,NULL));}
+	| PROC IDEN OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY 
+{$$=mkNode("PROC",mkNode($2,mkNode("(",NULL,NULL),NULL),mkNode("arguments",$4,$7));};
 
 paramProc: paramList {$$=$1;}
 	| {$$=NULL;};
 
-function: IDEN expBody {$$=mkNode("Call func",mkNode($1,NULL,NULL),mkNode("ARGS",$2,NULL));} ;
+function: IDEN expBody {$$=mkNode("callFunction",mkNode($1,NULL,NULL),mkNode("arguments",$2,NULL));} ;
 
 paramList: nestedIden COL typeSt {$$=mkNode("(",$3,mkNode("",$1,mkNode(")",NULL,NULL)));}
 	|  paramList SEMICOL cmt  paramList {$$=mkNode("",$1,mkNode("",$4,NULL));}	;
@@ -78,7 +78,7 @@ nestedDec: nestedDec declare  {$$=mkNode("",$1,$2);}
 nestedIden: IDEN COMMA nestedIden {$$=mkNode($1, mkNode(" ", $3, NULL),NULL);}
 	| IDEN {$$=mkNode($1, NULL, NULL);} ;
  
-typeOfVar:BOOL {$$=mkNode("boolean", NULL, NULL);}
+typeOfVar:BOOL {$$=mkNode("bool", NULL, NULL);}
 	| INT {$$=mkNode("int", NULL, NULL);}
 	| REAL {$$=mkNode("real", NULL, NULL);}
 	| CHAR {$$=mkNode("char", NULL, NULL);}
@@ -98,7 +98,7 @@ nestedStmt: nestedStmt statement {$$=mkNode("",$1,$2);}
 
 body_stmt: statement {$$=$1;}
 	|declare {$$=$1;}
-	|proc {$$=$1;} 
+	|procOrFunc {$$=$1;} 
 	|SEMICOL  {$$=mkNode("",NULL,NULL);};
 
 body: OPEN_CURLY nestedProc cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
@@ -106,7 +106,7 @@ body: OPEN_CURLY nestedProc cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode(
 
 statement: IF OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$5);}%prec IF
 	| IF OPEN_ROUND expr CLOSE_ROUND body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $3, mkNode("",NULL,NULL)),mkNode("",$5,mkNode("",$7,NULL)));}
-	| WHILE cmt OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("while",mkNode("(", $4,	mkNode(")",NULL,NULL)),$6);}
+	| WHILE cmt OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("while",mkNode("(", $4,mkNode(")",NULL,NULL)),$6);}
 	| nestedAssign SEMICOL cmt {$$=mkNode("",$1,NULL);}
 	| expr SEMICOL cmt {$$=$1;}
 	| RETURN expr SEMICOL cmt {$$=mkNode("return",$2,NULL);}
@@ -205,4 +205,3 @@ void Check(int flag){
 		printf("Syntax Error: Allowed only One and only proc Main() in the Code! \n");
 		exit(1);}
 }
-
