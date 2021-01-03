@@ -135,14 +135,14 @@ mathExp: expr PLUS expr {$$=mkNode("+",$1,$3);}
 	| expr MUL expr {$$=mkNode("*",$1,$3);}
 	| expr DIV expr {$$=mkNode("/",$1,$3);};
 
-values: NUM {$$=mkNode($1,mkNode("INT",NULL,NULL),NULL);}
-	| HEX_NUM {$$=mkNode($1,mkNode("HEX", NULL, NULL),NULL);}
-	| CONST_CHAR {$$=mkNode($1,mkNode("CHAR", NULL, NULL),NULL);}
-	| REAL_NUM {$$=mkNode($1,mkNode("REAL", NULL, NULL),NULL);}
-	| CONST_STRING {$$=mkNode($1,mkNode("STRING", NULL, NULL),NULL);};
+values: NUM {$$=mkNode($1,mkNode("INT_NUM",NULL,NULL),NULL);}
+	| HEX_NUM {$$=mkNode($1,mkNode("HEX_NUM", NULL, NULL),NULL);}
+	| CONST_CHAR {$$=mkNode($1,mkNode("CONST_CHAR", NULL, NULL),NULL);}
+	| REAL_NUM {$$=mkNode($1,mkNode("REAL_NUM", NULL, NULL),NULL);}
+	| CONST_STRING {$$=mkNode($1,mkNode("CONST_STRING", NULL, NULL),NULL);};
 
-elem: FALSE {$$=mkNode($1,mkNode("BOOLEAN", NULL, NULL),NULL);}
-	| TRUE {$$=mkNode($1,mkNode("BOOLEAN", NULL, NULL),NULL);}
+elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
+	| TRUE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
 	| NULL1 {$$=mkNode("null",NULL,NULL);}
 	| SIZE IDEN SIZE {$$=mkNode("|",mkNode($2,NULL,NULL),mkNode("|",NULL,NULL));}
 	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("solovar",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
@@ -188,7 +188,7 @@ int yyerror(char *error)
 {
 	int yydebug=1;
 	fflush(stdout);
-	fprintf(stderr,"%s: Not Accapted: '%s' at line %d! \n" ,error,yytext,yylineno);
+	fprintf(stderr,"%s: Not Accapted: '%s' in line %d!\n" ,error,yytext,yylineno);
 	
 	return 0;
 }
