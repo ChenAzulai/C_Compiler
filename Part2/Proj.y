@@ -92,7 +92,6 @@ typeSt: typeOfVar {$$=$1;}
 typeStr: typeOfVar {$$=$1;}
 	| STRING {$$=mkNode("string", NULL, NULL);};
 
-
 nestedStmt: nestedStmt statement {$$=mkNode("",$1,$2);} 
 	| {$$=NULL;};
 
@@ -104,22 +103,21 @@ body_stmt: statement {$$=$1;}
 body: OPEN_CURLY nestedProc cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
 
 
-statement: IF OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$5);}%prec IF
-	| IF OPEN_ROUND expr CLOSE_ROUND body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $3, mkNode("",NULL,NULL)),mkNode("",$5,mkNode("",$7,NULL)));}
-	| WHILE cmt OPEN_ROUND expr CLOSE_ROUND  body_stmt {$$=mkNode("while",mkNode("(", $4,mkNode(")",NULL,NULL)),$6);}
+statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}%prec IF
+	| IF expr body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $2, mkNode("",NULL,NULL)),mkNode("",$3,mkNode("",$5,NULL)));}
+	| WHILE cmt expr body_stmt {$$=mkNode("while",mkNode("(", $3,mkNode(")",NULL,NULL)),$4);}
 	| nestedAssign SEMICOL cmt {$$=mkNode("",$1,NULL);}
 	| expr SEMICOL cmt {$$=$1;}
 	| RETURN expr SEMICOL cmt {$$=mkNode("return",$2,NULL);}
 	| body {$$=$1;};
 
-
 nestedAssign: lhs EQUAL expr {$$=mkNode("=",$1,$3);};
-
 
 lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
 	| IDEN {$$=mkNode($1,NULL,NULL);}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
+
 condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr DIFF expr {$$=mkNode("!=",$1,$3);}
 	| expr BIG_EQ expr {$$=mkNode(">=",$1,$3);}
@@ -145,12 +143,12 @@ elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
 	| TRUE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
 	| NULL1 {$$=mkNode("null",NULL,NULL);}
 	| SIZE IDEN SIZE {$$=mkNode("|",mkNode($2,NULL,NULL),mkNode("|",NULL,NULL));}
-	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("solovar",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
-	| IDEN {$$=mkNode("solovar",mkNode($1,NULL,NULL),NULL);};
+	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("SingleVariable",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
+	| IDEN {$$=mkNode("SingleVariable",mkNode($1,NULL,NULL),NULL);};
 
 expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
-        | condition {$$=$1;}
+     | condition {$$=$1;}
 	| values {$$=$1;}
 	| addsExp {$$=$1;}
 	| pointerExp {$$=$1;}
