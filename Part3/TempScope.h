@@ -68,4 +68,3 @@ void checkFunctionCall(node tree,scope scp,var* params,int s);
 
 var* getFuncParams(scope scp,char* func);
 #endif
-
