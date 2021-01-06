@@ -2,7 +2,7 @@
 
 node* mknode(char* token,node* left,node* mid1,node* mid2, node* right)
 {
-	node *newnode = (node*)malloc(sizeof(node));
+node *newnode = (node*)malloc(sizeof(node));
    	char *newstr = (char*)malloc(sizeof(token)+1);
    	strcpy (newstr, token);
     newnode->token = newstr;
@@ -10,6 +10,11 @@ node* mknode(char* token,node* left,node* mid1,node* mid2, node* right)
 	newnode->mid1=mid1;
 	newnode->mid2=mid2;
 	newnode->right=right;
+	newnode->code=(char*)malloc(sizeof(char)*1000000);
+	newnode->var=(char*)malloc(sizeof(char)*1000000);
+	newnode->begin=(char*)malloc(sizeof(char)*1000000);
+	newnode->next=(char*)malloc(sizeof(char)*1000000);
+	newnode->isArray=0;
 	return newnode;
 }
 
@@ -145,5 +150,18 @@ void pre(node* tree,int tab){
 	}
 	else
 		return;
+
+}
+void basicOperationCode(char **souceCode,char* code1,char* code2,char* souceVar,char* var1,char* var2,char* operation){
+	//*(souceCode)=(char*)malloc(sizeof(char));
+	strcat(*(souceCode),code1);
+	strcat(*(souceCode),code2);
+	strcat(*(souceCode),"\t");
+	strcat(*(souceCode),souceVar);
+	strcat(*(souceCode),":=");
+	strcat(*(souceCode),var1);
+	strcat(*(souceCode),operation);
+	strcat(*(souceCode),var2);
+	strcat(*(souceCode),"\n");
 
 }
