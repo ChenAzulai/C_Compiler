@@ -100,7 +100,7 @@ void scanTree(node* tree,scope** scope1){
                 
 
         } 
-
+     
         //for delerations
         if(idType(tree->token)==4){
             //If you see var declerations!!
@@ -156,15 +156,13 @@ void scanTree(node* tree,scope** scope1){
                 if(!strcmp(tree->left->token,"FOR")){
                     CheckStatement(*tree->left->left,**scope1);
 
-                    if(strcmp(getExprType(*(tree->left->mid1),**scope1),"bool") && strcmp(getExprType(*(tree->left->mid1),**scope1),"int"))
+                    if(strcmp(getExprType(*(tree->left->mid1),**scope1),"bool") || strcmp(getExprType(*(tree->left->mid1),**scope1),"int"))
                         printError("Condition must be boolean");
                    
                     CheckStatement(*tree->left->mid2,**scope1);
                 }
                 //If we not seen FOR 
-
-                else if((strcmp(getExprType(*(tree->left->left),**scope1),"bool")) && (strcmp(getExprType(*(tree->left->left),**scope1),"int"))){
-                    
+                else if((strcmp(getExprType(*(tree->left->left),**scope1),"bool")) && (strcmp(getExprType(*(tree->left->left),**scope1),"int")) && (strcmp(getExprType(*(tree->left->left),**scope1),"int* "))){
                     printError("Condition must be boolean");
                 }
 
@@ -177,7 +175,7 @@ void scanTree(node* tree,scope** scope1){
                     (*scope1)->innerScope->upperScope=(*scope1); 
                     //if the statment is code block
                     scanTree(tree->left->mid1, &((*scope1)->innerScope));
-                    
+
                 }
                 //This is not the first inner function
                 else{
@@ -186,7 +184,6 @@ void scanTree(node* tree,scope** scope1){
                     scanTree(tree->left->mid1, &tmpScope);
                     
                 }
-                
                 if(!strcmp(tree->left->token,"IF") && tree->left->mid2){
                     	
                     	tmpScope=initScope("ELSE", 0, NULL);
@@ -202,7 +199,6 @@ void scanTree(node* tree,scope** scope1){
 
             //if we see body
             else if(idType(tree->left->token)==3){
-
                 tmpScope=initScope(tree->left->token, 0, NULL);
                 scope *tmp = getLastScope((*scope1)->innerScope);
                 if(tmp==NULL){ 
@@ -222,7 +218,12 @@ void scanTree(node* tree,scope** scope1){
 
             //Else this statment is function call or assigment
             else{   
-                CheckStatement(*(tree->left),**scope1);
+              
+                   if (strcmp(tree->left->left->token,"*"))
+            {
+                    CheckStatement(*(tree->left),**scope1);
+
+            }
                 scanTree(tree->mid1, scope1);
             }
         }
@@ -421,7 +422,7 @@ int idType(char* id){
         return 14;
     if(!(strcmp(id,"ABS")))
         return 15;
-    if(!strcmp(id,"^"))
+    if(!strcmp(id,"*"))
         return 16;
     if(!strcmp(id,"RETURN"))
         return 17;
@@ -547,8 +548,8 @@ void checkMainOnce(){
 
 void CheckStatement(node tree,scope scp){
 
-
     if(idType(tree.token)==7){
+
 
         //the token is '='
         if(tree.left->left){
@@ -562,10 +563,12 @@ void CheckStatement(node tree,scope scp){
             }
         }
         else{
+
             if(!strcmp(tree.mid1->token,"NULL")){
                 if((strcmp(getVarType(scp,tree.left->token),"int* ") && strcmp(getVarType(scp,tree.left->token),"char* ") && strcmp(getVarType(scp,tree.left->token),"real* ")) )
-                    printError("NULL can be assigned only to int* or char* or real* variabels");
+                    printError("NULL can be assigned only \nto int* or char* or real* variabels");
             }
+          
             else{
 
                 char* var_type = getVarType(scp,tree.left->token);
@@ -595,7 +598,9 @@ char* getVarType(scope scp,char* var){
         return "char";
     if(!strcmp(var,"false") || !strcmp(var,"true"))
         return "bool";
-
+    if(!strcmp(var,"+"))
+        return "int";
+    
     while(scp.vars!=NULL){
         if(!(strcmp(var,scp.vars->id))){
             return scp.vars->type;
@@ -656,7 +661,7 @@ char* getExprType(node tree,scope scp){
     }
     if(idType(tree.token)==9){
         // >,>=,<,<=
-        if(!strcmp(getExprType(*(tree.left),scp),getExprType(*(tree.mid1),scp)) && !strcmp(getExprType(*(tree.left),scp),"int")){
+        if(!strcmp(getExprType(*(tree.left),scp),getExprType(*(tree.mid1),scp)) && (!strcmp(getExprType(*(tree.left),scp),"int") || !strcmp(getExprType(*(tree.left),scp),"real"))){
             return "bool";
         }
         else{
@@ -664,7 +669,7 @@ char* getExprType(node tree,scope scp){
             char* error=(char*)malloc(sizeof(char)*100);
             strcpy(error,"The operator '");
             strcat(error,tree.token);
-            strcat(error,"' only compatible with int");
+            strcat(error,"' only compatible with int or real");
             printError(error);
             return NULL;
         }
@@ -743,7 +748,7 @@ char* getExprType(node tree,scope scp){
             return "char* ";
         }
         else{
-            printError("operator '&' is only compatible with int,string[i],real or char");
+            printError("operator '&' is only compatible with \nint,string[i],real or char");
             return NULL;
         }
 
@@ -761,15 +766,24 @@ char* getExprType(node tree,scope scp){
          !strcmp(getExprType(*(tree.left),scp),"char") || 
          !strcmp(getExprType(*(tree.left),scp),"char* ") || 
          !strcmp(getExprType(*(tree.left),scp),"real") || 
-         !strcmp(getExprType(*(tree.left),scp),"real* ") || 
+         !strcmp(getExprType(*(tree.left),scp),"real* ") ||
+         !strcmp(getExprType(*(tree.left),scp),"string") ||  
          !strcmp(getExprType(*(tree.left),scp),"bool") )){
             return "bool";
+        }
+        else if(!strcmp(getExprType(*(tree.left),scp),"int* ") && (!strcmp(getExprType(*(tree.mid1),scp),"int"))){
+            return "bool";
+
+        }
+    else if(!strcmp(getExprType(*(tree.mid1),scp),"int* ") && (!strcmp(getExprType(*(tree.left),scp),"int"))){
+            return "bool";
+
         }
         else{
             char* error=(char*)malloc(sizeof(char)*100);
             strcpy(error,"The operator '");
             strcat(error,tree.token);
-            strcat(error,"' only compatible with int,int*,char,char*,real,real* or boolean");
+            strcat(error,"' only compatible with \nint,int*,char,char*,real,real* or boolean");
             printError(error);
             return NULL;
         }
@@ -787,7 +801,8 @@ char* getExprType(node tree,scope scp){
         }
     }
        if(idType(tree.token)==16){
-        //&
+        //*
+        printf("asdsa\n");
         if(!strcmp(getExprType(*(tree.left),scp),"int* ") || !strcmp(getExprType(*(tree.left),scp),"int *")){
 
             return "int";
@@ -859,8 +874,12 @@ void checkFunctionCall(node tree,scope scp,var* params,int s){
 
         if (&tree1)
         {
+              if (strcmp(tree1.token,"V")) 
 
-            j=1;
+            {   
+                j=1;
+
+            }
         }
         while(tree1.left!=NULL){
 
@@ -881,12 +900,11 @@ void checkFunctionCall(node tree,scope scp,var* params,int s){
         }
 
 
-
         if (i!=j)
         {  
 
             char* error=(char*)malloc(sizeof(char)*100);
-                strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                strcpy(error,"wrong number or types of argumentsn \nin function call (in the scope of '");
                 strcat(error,scp.scope_id);
                 strcat(error,"')");
                 printError(error);   
@@ -911,7 +929,7 @@ if (&tree)
                 if(strcmp("int",tmp->type)){
                 
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -922,7 +940,7 @@ if (&tree)
             	 
                 if(strcmp("real",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -933,7 +951,7 @@ if (&tree)
             	 
                 if(strcmp("char",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -944,7 +962,7 @@ if (&tree)
 
                 if(strcmp("bool",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -953,7 +971,7 @@ if (&tree)
             }
             else if(strcmp(getExprType(*tree.left,scp),tmp->type)){
                 char* error=(char*)malloc(sizeof(char)*100);
-                strcpy(error,"5wrong number or types of arguments in function call (in the scope of '");
+                strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                 strcat(error,scp.scope_id);
                 strcat(error,"')");
                 printError(error);
@@ -968,7 +986,7 @@ if (&tree)
             if(!strcmp(getVarType(scp,tree.mid1->token),"int")){
                 if(strcmp("int",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -978,7 +996,7 @@ if (&tree)
             else if(!strcmp(getVarType(scp,tree.mid1->token),"real")){
                 if(strcmp("real",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -989,7 +1007,7 @@ if (&tree)
 
                 if(strcmp("char",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
@@ -1000,7 +1018,7 @@ if (&tree)
 
                 if(strcmp("bool",tmp->type)){
                     char* error=(char*)malloc(sizeof(char)*100);
-                    strcpy(error,"wrong number or types of arguments in function call (in the scope of '");
+                    strcpy(error,"wrong number or types of arguments \nin function call (in the scope of '");
                     strcat(error,scp.scope_id);
                     strcat(error,"')");
                     printError(error);
