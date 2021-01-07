@@ -8,7 +8,6 @@
 
 	int yylex();
 	int yyerror(char *);
-	void Check(int);
 
 %}
 
@@ -47,15 +46,15 @@
 %type <node>  code s nestedDec 
 
 %%
-s: cmt code { analayzeSyntax($2,globalScope);}; 
+s: code {analayzeSyntax($1,globalScope);}; 
 
 code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 
 nestedProc: nestedProc procOrFunc {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
-procOrFunc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND cmt RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY 
-{$$=mkNode("FUNC",mkNode($2,mkNode("(",NULL,NULL),mkNode("arguments",$4,mkNode("RETURN",$8,NULL))),mkNode("",$10,NULL));}
+procOrFunc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY 
+{$$=mkNode("FUNC",mkNode($2,mkNode("(",NULL,NULL),mkNode("arguments",$4,mkNode("RETURN",$7,NULL))),mkNode("",$9,NULL));}
 	| PROC IDEN OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY 
 {$$=mkNode("PROC",mkNode($2,mkNode("(",NULL,NULL),NULL),mkNode("arguments",$4,$7));};
 
@@ -65,11 +64,11 @@ paramProc: paramList {$$=$1;}
 function: IDEN expBody {$$=mkNode("callFunction",mkNode($1,NULL,NULL),mkNode("arguments",$2,NULL));} ;
 
 paramList: nestedIden COL typeSt {$$=mkNode("(",$3,mkNode("",$1,mkNode(")",NULL,NULL)));}
-	|  paramList SEMICOL cmt  paramList {$$=mkNode("",$1,mkNode("",$4,NULL));}	;
+	|  paramList SEMICOL paramList {$$=mkNode("",$1,mkNode("",$3,NULL));}	;
 
-procBody: cmt nestedProc nestedDec nestedStmt {$$=mkNode("BODY", mkNode(" ",$2,NULL),mkNode(" ",$3,mkNode(" ",$4,mkNode(" ",NULL,NULL))));};
+procBody: nestedProc nestedDec nestedStmt {$$=mkNode("BODY", mkNode(" ",$1,NULL),mkNode(" ",$2,mkNode(" ",$3,mkNode(" ",NULL,NULL))));};
 
-declare: VAR nestedIden COL typeSt cmt SEMICOL cmt {$$=mkNode("var", $4,$2);};
+declare: VAR nestedIden COL typeSt SEMICOL {$$=mkNode("var", $4,$2);};
 
 nestedDec: nestedDec declare  {$$=mkNode("",$1,$2);} 
 	| {$$=NULL;}  ;
@@ -100,15 +99,15 @@ body_stmt: statement {$$=$1;}
 	|procOrFunc {$$=$1;} 
 	|SEMICOL  {$$=mkNode("",NULL,NULL);};
 
-body: OPEN_CURLY nestedProc cmt nestedDec nestedStmt CLOSE_CURLY cmt {$$=mkNode("{",$2,mkNode("", $4,mkNode("", $5,("}",NULL,NULL))));};
+body: OPEN_CURLY nestedProc nestedDec nestedStmt CLOSE_CURLY {$$=mkNode("{",$2,mkNode("", $3,mkNode("", $4,("}",NULL,NULL))));};
 
 
 statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}%prec IF
 	| IF expr body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $2, mkNode("",NULL,NULL)),mkNode("",$3,mkNode("",$5,NULL)));}
-	| WHILE cmt expr body_stmt {$$=mkNode("while",mkNode("(", $3,mkNode(")",NULL,NULL)),$4);}
-	| nestedAssign SEMICOL cmt {$$=mkNode("",$1,NULL);}
-	| expr SEMICOL cmt {$$=$1;}
-	| RETURN expr SEMICOL cmt {$$=mkNode("return",$2,NULL);}
+	| WHILE expr body_stmt {$$=mkNode("while",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}
+	| nestedAssign SEMICOL {$$=mkNode("",$1,NULL);}
+	| expr SEMICOL {$$=$1;}
+	| RETURN expr SEMICOL {$$=mkNode("return",$2,NULL);}
 	| body {$$=$1;};
 
 nestedAssign: lhs EQUAL expr {$$=mkNode("=",$1,$3);};
@@ -152,7 +151,7 @@ expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| values {$$=$1;}
 	| addsExp {$$=$1;}
 	| pointerExp {$$=$1;}
-	| function cmt {$$=$1;}
+	| function {$$=$1;}
 	| elem {$$=$1;};
 
 addsExp: ADDS IDEN {$$=mkNode("&",mkNode($2,NULL,NULL),NULL);}
@@ -168,9 +167,6 @@ nestedExp: expr COMMA nestedExp {$$=mkNode("",$1,mkNode(",",$3,NULL));}
 	| {$$=NULL;};
 
 expBody:OPEN_ROUND nestedExp CLOSE_ROUND {$$=$2;}; 
-
-cmt: COMMENT cmt {;}
-	| {;};
 
 %%
 #include "lex.yy.c"
@@ -189,17 +185,4 @@ int yyerror(char *error)
 	fprintf(stderr,"%s: Not Accapted: '%s' in line %d!\n" ,error,yytext,yylineno);
 	
 	return 0;
-}
-
-void Check(int flag){
-	if(flag==1)
-		exit(1);
-	else if(flag==0 &&AdditionalMain==1)
-		printf("Syntax & Semantic Checked-OK!\n"); 
-	else if(AdditionalMain==0){
-		printf("Syntax Error: proc Main() was not declared in the Code! \n");
-		exit(1);}
-	else if(AdditionalMain==2){
-		printf("Syntax Error: Allowed only One and only proc Main() in the Code! \n");
-		exit(1);}
 }
