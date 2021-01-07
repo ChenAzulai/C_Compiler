@@ -4,7 +4,13 @@
 	#include <string.h>
 	#include "AST.h"
 	#include "Scope.h"
-
+	
+	char st[10][10];
+	int top=0;
+	char i_l[2]="0";
+	char temp[2] = "t";
+	int label[20];
+	int Inum=0,Itop=0;
 
 	int yylex();
 	int yyerror(char *);
@@ -110,10 +116,10 @@ statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL
 	| RETURN expr SEMICOL {$$=mkNode("return",$2,NULL);}
 	| body {$$=$1;};
 
-nestedAssign: lhs EQUAL expr {$$=mkNode("=",$1,$3);};
+nestedAssign: lhs EQUAL {push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
 
 lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
-	| IDEN {$$=mkNode($1,NULL,NULL);}
+	| IDEN {$$=mkNode($1,NULL,NULL);yytext=yylval.string;push();}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
 
@@ -127,12 +133,12 @@ condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr OR expr {$$=mkNode("||",$1,$3);}
 	| mathExp {$$=$1;};
 
-mathExp: expr PLUS expr {$$=mkNode("+",$1,$3);}
-	| expr MINUS expr {$$=mkNode("-",$1,$3);}
-	| expr MUL expr {$$=mkNode("*",$1,$3);}
-	| expr DIV expr {$$=mkNode("/",$1,$3);};
+mathExp: expr PLUS {push();} expr {$$=mkNode("+",$1,$4);codegen();}
+	| expr MINUS {push();} expr {$$=mkNode("-",$1,$4);codegen();}
+	| expr MUL {push();} expr {$$=mkNode("*",$1,$4);codegen();}
+	| expr DIV {push();} expr {$$=mkNode("/",$1,$4);codegen();};
 
-values: NUM {$$=mkNode($1,mkNode("INT_NUM",NULL,NULL),NULL);}
+values: NUM {$$=mkNode($1,mkNode("INT_NUM",NULL,NULL),NULL);push();}
 	| HEX_NUM {$$=mkNode($1,mkNode("HEX_NUM", NULL, NULL),NULL);}
 	| CONST_CHAR {$$=mkNode($1,mkNode("CONST_CHAR", NULL, NULL),NULL);}
 	| REAL_NUM {$$=mkNode($1,mkNode("REAL_NUM", NULL, NULL),NULL);}
@@ -143,7 +149,7 @@ elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
 	| NULL1 {$$=mkNode("null",NULL,NULL);}
 	| SIZE IDEN SIZE {$$=mkNode("|",mkNode($2,NULL,NULL),mkNode("|",NULL,NULL));}
 	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("SingleVariable",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
-	| IDEN {$$=mkNode("SingleVariable",mkNode($1,NULL,NULL),NULL);};
+	| IDEN {$$=mkNode("SingleVariable",mkNode($1,NULL,NULL),NULL);yytext=yylval.string;push();};
 
 expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
@@ -185,4 +191,29 @@ int yyerror(char *error)
 	fprintf(stderr,"%s: Not Accapted: '%s' in line %d!\n" ,error,yytext,yylineno);
 	
 	return 0;
+}
+
+
+push()
+{
+	strcpy(st[++top], yytext);
+}
+
+
+
+codegen()
+{
+	 strcpy(temp,"t");
+	 strcat(temp,i_l);
+	 printf(" %s : %s %s %s \n",temp,st[top-2],st[top-1],st[top]);
+	 top-=2;
+	 strcpy(st[top],temp);
+	 i_l[0]++;
+}
+
+codegen_assign()
+{
+	 printf(" %s = %s\n",st[top-2],st[top]);
+	 top-=2;
+	 
 }
