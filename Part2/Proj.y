@@ -10,7 +10,7 @@
 	char i_l[2]="0";
 	char temp[2] = "t";
 	int label[20];
-	int Inum=0,Itop=0;
+	int lnum=0,ltop=0;
 
 	int yylex();
 	int yyerror(char *);
@@ -175,6 +175,7 @@ nestedExp: expr COMMA nestedExp {$$=mkNode("",$1,mkNode(",",$3,NULL));}
 expBody:OPEN_ROUND nestedExp CLOSE_ROUND {$$=$2;}; 
 
 %%
+
 #include "lex.yy.c"
 
 void main()
@@ -193,27 +194,58 @@ int yyerror(char *error)
 	return 0;
 }
 
-
-push()
-{
-	strcpy(st[++top], yytext);
+push(){
+  strcpy(st[++top],yytext);
 }
 
+codegen(){
+ strcpy(temp,"t");
+ strcat(temp,i_l);
+  printf("%s = %s %s %s\n",temp,st[top-2],st[top-1],st[top]);
+  top-=2;
+ strcpy(st[top],temp);
+ i_l[0]++;
+ }
+
+codegen_umin(){
+ strcpy(temp,"t");
+ strcat(temp,i_l);
+ printf("%s = -%s\n",temp,st[top]);
+ top--;
+ strcpy(st[top],temp);
+ i_l[0]++;
+ }
+
+codegen_assign(){
+ printf("%s = %s\n",st[top-2],st[top]);
+ top-=2;
+ }
 
 
-codegen()
+lab1()
 {
-	 strcpy(temp,"t");
-	 strcat(temp,i_l);
-	 printf(" %s : %s %s %s \n",temp,st[top-2],st[top-1],st[top]);
-	 top-=2;
-	 strcpy(st[top],temp);
-	 i_l[0]++;
+ lnum++;
+ strcpy(temp,"t");
+ strcat(temp,i_l);
+ printf("%s = not %s\n",temp,st[top]);
+ printf("if %s goto L%d\n",temp,lnum);
+ i_l[0]++;
+ label[++ltop]=lnum;
 }
 
-codegen_assign()
+lab2()
 {
-	 printf(" %s = %s\n",st[top-2],st[top]);
-	 top-=2;
-	 
+int x;
+lnum++;
+x=label[ltop--];
+printf("goto L%d\n",lnum);
+printf("L%d: \n",x);
+label[++ltop]=lnum;
+}
+
+lab3()
+{
+int y;
+y=label[ltop--];
+printf("L%d: \n",y);
 }
