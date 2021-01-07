@@ -117,7 +117,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			if((strcmp(getExprType(tree->left,CurrScope),"int")==0||strcmp(getExprType(tree->left,CurrScope),"real")==0)&&(strcmp(getExprType(tree->right,CurrScope),"int")==0||strcmp(getExprType(tree->right,CurrScope),"real")==0))
 			msg="bool";
 			else{
-				printf("Syntax Error: in '%s' invalid use of %s Operator between '%s' and '%s' \n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
+				printf("Syntax Error: in '%s' invalid use of '%s' Operator between '%s' and '%s' \n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 	
 			}
@@ -129,7 +129,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			if(strcmp(getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope))==0&&strcmp(getExprType(tree->right,CurrScope),"bool")==0)
 			msg="bool";
 			else{
-				printf("Syntax Error: in '%s' invalid use of %s Operator  between %s and %s\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
+				printf("Syntax Error: in '%s' invalid use of %s Operator between %s and %s\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -151,7 +151,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			}
 			else if(strcmp(msg,"")==0)
 			{
-				printf("Syntax Error: in '%s' invalid use of %s Operator  between %s and %s= in Func\\Proc %s\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
+				printf("Syntax Error: in '%s' invalid use of %s Operator between %s and %s= in Func\\Proc %s\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -168,7 +168,7 @@ char * getExprType(node * tree,SCOPE* CurrScope){
 			}
 			else
 			{
-				printf("Syntax Error: in '%s' invalid use of '%s' Operator  between '%s' and '%s' in Func\\Proc '%s'\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
+				printf("Syntax Error: in '%s' invalid use of '%s' Operator between '%s' and '%s' in Func\\Proc '%s'\n",globalScope->ForP[globalScope->FuncCount-1]->name,tree->token,getExprType(tree->left,CurrScope),getExprType(tree->right,CurrScope));
 				exit(1);
 				
 			}
@@ -523,7 +523,7 @@ void analayzeSyntax(node *tree,SCOPE * CurrScope)
         scopeAmount--;
 		return;			
 	}
-	else if(strcmp(tree->token, "solovar") == 0 )
+	else if(strcmp(tree->token, "SingleVariable") == 0 )
 	{
 		findVar(tree->left,CurrScope);
 	}
@@ -590,7 +590,7 @@ char *findVar(node * tree,SCOPE * CurrScope)
 {
 	int j=0, i=0;
 	SCOPE* Temp = CurrScope;
-	if(strcmp(tree->token,"solovar")==0)
+	if(strcmp(tree->token,"SingleVariable")==0)
 		tree=tree->left;
 	while(Temp!=NULL)
 	{
@@ -714,4 +714,17 @@ Var* callFuncArguments(SCOPE * CurrScope,node *tree,int * count)
 	for(i = 0; i<*count; i++)
 		arguments[i].type=temp[i].type;
 	return arguments;
+}
+
+void Check(int flag){
+	if(flag==1)
+		exit(1);
+	if(flag==0 &&AdditionalMain==1)
+		printf("Syntax & Semantic Checked-OK!\n"); 
+	else if(AdditionalMain==0){
+		printf("Syntax Error: Main() was not declared in the Code! \n");
+		exit(1);}
+	else{
+		printf("Syntax Error: Allowed only one Main() in the Code! \n");
+		exit(1);}
 }
