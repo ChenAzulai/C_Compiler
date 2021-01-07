@@ -10,7 +10,7 @@
 	char i_l[2]="0";
 	char temp[2] = "t";
 	int label[20];
-	int lnum=0,ltop=0;
+	int Inum=0,Itop=0;
 
 	int yylex();
 	int yyerror(char *);
@@ -36,8 +36,8 @@
 %left DIFF SMALLER SMALL_EQ BIG_EQ BIGGER OR AND IS_EQ
 %left MINUS PLUS RETURN
 %left MUL DIV
-%left SEMICOL EQUAL 
-%right EX_MARK CLOSE_CURLY
+%left SEMICOL  
+%right EX_MARK CLOSE_CURLY EQUAL
 
 %nonassoc IDEN 
 %nonassoc OPEN_ROUND
@@ -119,7 +119,7 @@ statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL
 nestedAssign: lhs EQUAL {push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
 
 lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
-	| IDEN {$$=mkNode($1,NULL,NULL);yytext=yylval.string;push();}
+	| IDEN {$$=mkNode($1,NULL,NULL);printf("IDEN\n");yytext=yylval.string;push();}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
 
@@ -133,7 +133,7 @@ condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
 	| expr OR expr {$$=mkNode("||",$1,$3);}
 	| mathExp {$$=$1;};
 
-mathExp: expr PLUS {push();} expr {$$=mkNode("+",$1,$4);codegen();}
+mathExp: expr PLUS {strcpy(st[++top], "+");} expr {$$=mkNode("+",$1,$4);codegen();}
 	| expr MINUS {push();} expr {$$=mkNode("-",$1,$4);codegen();}
 	| expr MUL {push();} expr {$$=mkNode("*",$1,$4);codegen();}
 	| expr DIV {push();} expr {$$=mkNode("/",$1,$4);codegen();};
@@ -175,7 +175,6 @@ nestedExp: expr COMMA nestedExp {$$=mkNode("",$1,mkNode(",",$3,NULL));}
 expBody:OPEN_ROUND nestedExp CLOSE_ROUND {$$=$2;}; 
 
 %%
-
 #include "lex.yy.c"
 
 void main()
@@ -194,58 +193,28 @@ int yyerror(char *error)
 	return 0;
 }
 
-push(){
-  strcpy(st[++top],yytext);
+
+push()
+{
+	strcpy(st[++top], yytext);
 }
 
-codegen(){
- strcpy(temp,"t");
- strcat(temp,i_l);
-  printf("%s = %s %s %s\n",temp,st[top-2],st[top-1],st[top]);
-  top-=2;
- strcpy(st[top],temp);
- i_l[0]++;
- }
-
-codegen_umin(){
- strcpy(temp,"t");
- strcat(temp,i_l);
- printf("%s = -%s\n",temp,st[top]);
- top--;
- strcpy(st[top],temp);
- i_l[0]++;
- }
-
-codegen_assign(){
- printf("%s = %s\n",st[top-2],st[top]);
- top-=2;
- }
 
 
-lab1()
+codegen()
 {
- lnum++;
- strcpy(temp,"t");
- strcat(temp,i_l);
- printf("%s = not %s\n",temp,st[top]);
- printf("if %s goto L%d\n",temp,lnum);
- i_l[0]++;
- label[++ltop]=lnum;
+
+	 strcpy(temp,"t");
+	 strcat(temp,i_l);
+	 printf(" %s : %s %s %s \n",temp,st[top-2],st[top-1],st[top]);
+	 top-=2;
+	 strcpy(st[top],temp);
+	 i_l[0]++;
 }
 
-lab2()
+codegen_assign()
 {
-int x;
-lnum++;
-x=label[ltop--];
-printf("goto L%d\n",lnum);
-printf("L%d: \n",x);
-label[++ltop]=lnum;
-}
-
-lab3()
-{
-int y;
-y=label[ltop--];
-printf("L%d: \n",y);
+	 printf(" %s = %s\n",st[top-2],st[top]);
+	 top-=2;
+	 
 }
