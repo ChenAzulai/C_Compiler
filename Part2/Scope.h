@@ -47,4 +47,6 @@ char* findVar(node *, SCOPE *);
 Var* mkArgs(node * , int *);
 Var* callFuncArguments(SCOPE *, node *,int * );
 
+void Check(int);
+
 #endif
