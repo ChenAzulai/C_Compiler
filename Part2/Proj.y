@@ -60,10 +60,10 @@ code: nestedProc {$$=mkNode("CODE",$1,NULL);};
 nestedProc: nestedProc procOrFunc {$$=mkNode("",$1,$2);}
 	| {$$=NULL;};
 
-procOrFunc: FUNC IDEN OPEN_ROUND paramProc CLOSE_ROUND RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY 
-{$$=mkNode("FUNC",mkNode($2,mkNode("(",NULL,NULL),mkNode("arguments",$4,mkNode("RETURN",$7,NULL))),mkNode("",$9,NULL));}
-	| PROC IDEN OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY 
-{$$=mkNode("PROC",mkNode($2,mkNode("(",NULL,NULL),NULL),mkNode("arguments",$4,$7));};
+procOrFunc: FUNC IDEN{printf("%s:\n BeginFunc\n ",yytext=yylval.string);} OPEN_ROUND paramProc CLOSE_ROUND RETURN typeStr  OPEN_CURLY  procBody CLOSE_CURLY{printf("EndFunc\n\n");}
+{$$=mkNode("FUNC",mkNode($2,mkNode("(",NULL,NULL),mkNode("arguments",$5,mkNode("RETURN",$8,NULL))),mkNode("",$10,NULL));}
+	| PROC IDEN{printf("%s:\n BeginFunc\n ",yytext=yylval.string);} OPEN_ROUND paramProc CLOSE_ROUND  OPEN_CURLY  procBody CLOSE_CURLY{printf("EndFunc\n\n");}
+{$$=mkNode("PROC",mkNode($2,mkNode("(",NULL,NULL),NULL),mkNode("arguments",$5,$8));};
 
 paramProc: paramList {$$=$1;}
 	| {$$=NULL;};
@@ -128,14 +128,14 @@ lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
 
-condition:expr IS_EQ {push();} expr {$$=mkNode("==",$1,$4);codegen();}
+condition:expr IS_EQ {yytext="==";push();} expr {$$=mkNode("==",$1,$4);codegen();}
 	| expr DIFF {push();} expr {$$=mkNode("!=",$1,$4);codegen();}
 	| expr BIG_EQ {yytext=">=";push();} expr {$$=mkNode(">=",$1,$4);codegen();}
 	| expr BIGGER {yytext=">";push();} expr {$$=mkNode(">",$1,$4); codegen();}
-	| expr SMALL_EQ {push();} expr {$$=mkNode("<=",$1,$4);codegen();}
-	| expr SMALLER {push();} expr {$$=mkNode("<",$1,$4);codegen();}
-	| expr AND {push();} expr  {$$=mkNode("&&",$1,$4);codegen();}
-	| expr OR {push();} expr {$$=mkNode("||",$1,$4);codegen();}
+	| expr SMALL_EQ {yytext="<=";push();} expr {$$=mkNode("<=",$1,$4);codegen();}
+	| expr SMALLER {yytext="<";push();} expr {$$=mkNode("<",$1,$4);codegen();}
+	| expr AND {yytext="&&";push();} expr  {$$=mkNode("&&",$1,$4);codegen();}
+	| expr OR {yytext="||";push();} expr {$$=mkNode("||",$1,$4);codegen();}
 	| mathExp {$$=$1;};
 
 mathExp: expr PLUS {yytext="+";push();} expr {$$=mkNode("+",$1,$4);codegen();}
@@ -276,4 +276,3 @@ lab3_WHILE()
 printf("goto L%d \n",start);
 printf("L%d: \n",lnum);
 }
-
