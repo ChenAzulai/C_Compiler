@@ -46,7 +46,7 @@
 
 
 %type <node> addsExp nestedStmt body_stmt pointerExp nestedExp function 
-%type <node> elem values mathExp condition expr lhs nestedAssign body 
+%type <node> elem values mathExp condition expr lhs nestedAssign body else_expr if_expr
 %type <node> statement typeOfVar typeStr typeSt nestedIden declare expBody
 %type <node> procBody paramList paramProc procOrFunc nestedProc
 %type <node>  code s nestedDec 
@@ -108,13 +108,17 @@ body_stmt: statement {$$=$1;}
 body: OPEN_CURLY nestedProc nestedDec nestedStmt CLOSE_CURLY {$$=mkNode("{",$2,mkNode("", $3,mkNode("", $4,("}",NULL,NULL))));};
 
 
-statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}%prec IF //Maybe Will be needed to change{lab3
-	| IF expr body_stmt ELSE{lab2_IF();} body_stmt {$$=mkNode("if-else",mkNode("", $2, mkNode("",NULL,NULL)),mkNode("",$3,mkNode("",$6,NULL)));lab3_IF();}
+statement: IF OPEN_ROUND expr CLOSE_ROUND {lab1_IF();} if_expr {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$6);}%prec IF;
 	| WHILE{lab1_WHILE();} expr body_stmt {$$=mkNode("while",mkNode("(", $3,mkNode(")",NULL,NULL)),$4);lab3_WHILE();}
 	| nestedAssign SEMICOL {$$=mkNode("",$1,NULL);}
 	| expr SEMICOL {$$=$1;}
 	| RETURN expr SEMICOL {$$=mkNode("return",$2,NULL);}
 	| body {$$=$1;};
+
+if_expr: body_stmt {lab2_IF();} ELSE else_expr {$$=mkNode("",$1,$4);}
+	| body_stmt {$$=mkNode("",$1,NULL);lab3_IF();};
+
+else_expr: body_stmt {$$=mkNode("",$1,NULL);lab3_IF();};
 
 nestedAssign: lhs EQUAL {push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
 
@@ -125,15 +129,15 @@ lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",
 
 condition:expr IS_EQ {push();} expr {$$=mkNode("==",$1,$4);codegen();}
 	| expr DIFF {push();} expr {$$=mkNode("!=",$1,$4);codegen();}
-	| expr BIG_EQ {push();} expr {$$=mkNode(">=",$1,$4);codegen();}
-	| expr BIGGER {push();} expr {$$=mkNode(">",$1,$4); codegen();}
+	| expr BIG_EQ {yytext=">=";push();} expr {$$=mkNode(">=",$1,$4);codegen();}
+	| expr BIGGER {yytext=">";push();} expr {$$=mkNode(">",$1,$4); codegen();}
 	| expr SMALL_EQ {push();} expr {$$=mkNode("<=",$1,$4);codegen();}
 	| expr SMALLER {push();} expr {$$=mkNode("<",$1,$4);codegen();}
 	| expr AND {push();} expr  {$$=mkNode("&&",$1,$4);codegen();}
 	| expr OR {push();} expr {$$=mkNode("||",$1,$4);codegen();}
 	| mathExp {$$=$1;};
 
-mathExp: expr PLUS {strcpy(st[++top], "+");} expr {$$=mkNode("+",$1,$4);codegen();}
+mathExp: expr PLUS {yytext="+";push();} expr {$$=mkNode("+",$1,$4);codegen();}
 	| expr MINUS {push();} expr {$$=mkNode("-",$1,$4);codegen();}
 	| expr MUL {push();} expr {$$=mkNode("*",$1,$4);codegen();}
 	| expr DIV {push();} expr {$$=mkNode("/",$1,$4);codegen();};
@@ -153,7 +157,7 @@ elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);push();}
 
 expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
-     | condition {$$=$1;lab1_IF();}
+     | condition {$$=$1;}
 	| values {$$=$1;}
 	| addsExp {$$=$1;}
 	| pointerExp {$$=$1;}
