@@ -5,12 +5,13 @@
 	#include "AST.h"
 	#include "Scope.h"
 	
-	char st[10][10];
+	int start=1;
+	char st[100][10];
 	int top=0;
 	char i_l[2]="0";
 	char temp[2] = "t";
 	int label[20];
-	int lnum=0,ltop=0,start=1;
+	int lnum=0,ltop=0;
 
 	int yylex();
 	int yyerror(char *);
@@ -109,7 +110,7 @@ body: OPEN_CURLY nestedProc nestedDec nestedStmt CLOSE_CURLY {$$=mkNode("{",$2,m
 
 
 statement: IF OPEN_ROUND expr CLOSE_ROUND {lab1_IF();} if_expr {$$=mkNode("if",mkNode("(", $3,mkNode(")",NULL,NULL)),$6);}%prec IF;
-	| WHILE{lab1_WHILE();} expr body_stmt {$$=mkNode("while",mkNode("(", $3,mkNode(")",NULL,NULL)),$4);lab3_WHILE();}
+	| WHILE {lab1_WHILE();} OPEN_ROUND expr CLOSE_ROUND {lab2_WHILE();} body_stmt {$$=mkNode("while",mkNode("(", $4,mkNode(")",NULL,NULL)),$7);lab3_WHILE();}
 	| nestedAssign SEMICOL {$$=mkNode("",$1,NULL);}
 	| expr SEMICOL {$$=$1;}
 	| RETURN expr SEMICOL {$$=mkNode("return",$2,NULL);}
@@ -120,10 +121,10 @@ if_expr: body_stmt {lab2_IF();} ELSE else_expr {$$=mkNode("",$1,$4);}
 
 else_expr: body_stmt {$$=mkNode("",$1,NULL);lab3_IF();};
 
-nestedAssign: lhs EQUAL {push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
+nestedAssign: lhs EQUAL {yytext="=";push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
 
 lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
-	| IDEN {$$=mkNode($1,NULL,NULL);/*printf("IDEN\n");*/yytext=yylval.string;push();}
+	| IDEN {$$=mkNode($1,NULL,NULL);yytext=yylval.string;push();}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
 
@@ -200,6 +201,7 @@ int yyerror(char *error)
 
 push()
 {
+	//printf("\n PUSH: %s \n", yytext);
 	strcpy(st[++top], yytext);
 }
 
@@ -254,13 +256,14 @@ printf("L%d: \n",y);
 
 lab1_WHILE()
 {
-printf("\n");
-printf("L%d: \n",++lnum);//++lnum OR lnum++
+start=++lnum;
+printf("L%d: \n",lnum++);//++lnum OR lnum++
 }
 
 
 lab2_WHILE()
 {
+
  strcpy(temp,"t");
  strcat(temp,i_l);
  printf("%s = not %s\n",temp,st[top]);
