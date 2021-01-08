@@ -10,7 +10,7 @@
 	char i_l[2]="0";
 	char temp[2] = "t";
 	int label[20];
-	int Inum=0,Itop=0;
+	int lnum=0,ltop=0,start=1;
 
 	int yylex();
 	int yyerror(char *);
@@ -108,9 +108,9 @@ body_stmt: statement {$$=$1;}
 body: OPEN_CURLY nestedProc nestedDec nestedStmt CLOSE_CURLY {$$=mkNode("{",$2,mkNode("", $3,mkNode("", $4,("}",NULL,NULL))));};
 
 
-statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}%prec IF
-	| IF expr body_stmt ELSE body_stmt {$$=mkNode("if-else",mkNode("", $2, mkNode("",NULL,NULL)),mkNode("",$3,mkNode("",$5,NULL)));}
-	| WHILE expr body_stmt {$$=mkNode("while",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}
+statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL)),$3);}%prec IF //Maybe Will be needed to change{lab3
+	| IF expr body_stmt ELSE{lab2_IF();} body_stmt {$$=mkNode("if-else",mkNode("", $2, mkNode("",NULL,NULL)),mkNode("",$3,mkNode("",$6,NULL)));lab3_IF();}
+	| WHILE{lab1_WHILE();} expr body_stmt {$$=mkNode("while",mkNode("(", $3,mkNode(")",NULL,NULL)),$4);lab3_WHILE();}
 	| nestedAssign SEMICOL {$$=mkNode("",$1,NULL);}
 	| expr SEMICOL {$$=$1;}
 	| RETURN expr SEMICOL {$$=mkNode("return",$2,NULL);}
@@ -119,18 +119,18 @@ statement: IF expr body_stmt {$$=mkNode("if",mkNode("(", $2,mkNode(")",NULL,NULL
 nestedAssign: lhs EQUAL {push();} expr {$$=mkNode("=",$1,$4); codegen_assign();};
 
 lhs: IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode($1, mkNode("[",$3,mkNode("]",NULL,NULL)), NULL);} 
-	| IDEN {$$=mkNode($1,NULL,NULL);printf("IDEN\n");yytext=yylval.string;push();}
+	| IDEN {$$=mkNode($1,NULL,NULL);/*printf("IDEN\n");*/yytext=yylval.string;push();}
 	| addsExp {$$=$1;}
 	| pointerExp{$$=$1;} ;
 
-condition:expr IS_EQ expr {$$=mkNode("==",$1,$3);}
-	| expr DIFF expr {$$=mkNode("!=",$1,$3);}
-	| expr BIG_EQ expr {$$=mkNode(">=",$1,$3);}
-	| expr BIGGER expr {$$=mkNode(">",$1,$3);}
-	| expr SMALL_EQ expr {$$=mkNode("<=",$1,$3);}
-	| expr SMALLER expr {$$=mkNode("<",$1,$3);}
-	| expr AND expr {$$=mkNode("&&",$1,$3);}
-	| expr OR expr {$$=mkNode("||",$1,$3);}
+condition:expr IS_EQ {push();} expr {$$=mkNode("==",$1,$4);codegen();}
+	| expr DIFF {push();} expr {$$=mkNode("!=",$1,$4);codegen();}
+	| expr BIG_EQ {push();} expr {$$=mkNode(">=",$1,$4);codegen();}
+	| expr BIGGER {push();} expr {$$=mkNode(">",$1,$4); codegen();}
+	| expr SMALL_EQ {push();} expr {$$=mkNode("<=",$1,$4);codegen();}
+	| expr SMALLER {push();} expr {$$=mkNode("<",$1,$4);codegen();}
+	| expr AND {push();} expr  {$$=mkNode("&&",$1,$4);codegen();}
+	| expr OR {push();} expr {$$=mkNode("||",$1,$4);codegen();}
 	| mathExp {$$=$1;};
 
 mathExp: expr PLUS {strcpy(st[++top], "+");} expr {$$=mkNode("+",$1,$4);codegen();}
@@ -144,8 +144,8 @@ values: NUM {$$=mkNode($1,mkNode("INT_NUM",NULL,NULL),NULL);push();}
 	| REAL_NUM {$$=mkNode($1,mkNode("REAL_NUM", NULL, NULL),NULL);}
 	| CONST_STRING {$$=mkNode($1,mkNode("CONST_STRING", NULL, NULL),NULL);};
 
-elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
-	| TRUE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
+elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);push();}
+	| TRUE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);push();}
 	| NULL1 {$$=mkNode("null",NULL,NULL);}
 	| SIZE IDEN SIZE {$$=mkNode("|",mkNode($2,NULL,NULL),mkNode("|",NULL,NULL));}
 	| IDEN OPEN_SQUARE expr CLOSE_SQUARE {$$=mkNode("SingleVariable",mkNode($1,mkNode("[",$3,mkNode("]",NULL,NULL)),NULL),NULL);}
@@ -153,7 +153,7 @@ elem: FALSE {$$=mkNode($1,mkNode("T_F_BOOLEAN", NULL, NULL),NULL);}
 
 expr:  OPEN_ROUND expr CLOSE_ROUND {$$=mkNode("(",$2,mkNode(")",NULL,NULL));}
 	| EX_MARK expr {$$=mkNode("!",$2,NULL);}
-     | condition {$$=$1;}
+     | condition {$$=$1;lab1_IF();}
 	| values {$$=$1;}
 	| addsExp {$$=$1;}
 	| pointerExp {$$=$1;}
@@ -203,10 +203,9 @@ push()
 
 codegen()
 {
-
-	 strcpy(temp,"t");
+	 strcpy(temp,"_t");
 	 strcat(temp,i_l);
-	 printf(" %s : %s %s %s \n",temp,st[top-2],st[top-1],st[top]);
+	 printf("%s = %s %s %s \n",temp,st[top-2],st[top-1],st[top]);
 	 top-=2;
 	 strcpy(st[top],temp);
 	 i_l[0]++;
@@ -218,3 +217,56 @@ codegen_assign()
 	 top-=2;
 	 
 }
+
+lab1_IF()
+{
+ lnum++;
+ strcpy(temp,"_t");
+ strcat(temp,i_l);
+ printf("%s = not %s\n",temp,st[top]);
+ printf("if%s goTo L%d\n",temp,lnum);
+ i_l[0]++;
+ label[++ltop]=lnum;
+}
+
+lab2_IF()
+{
+int x;
+lnum++;
+x=label[ltop--];
+printf("GoTo L%d\n",lnum);
+printf("L%d: \n",x);
+label[++ltop]=lnum;
+}
+
+lab3_IF()
+{
+int y;
+y=label[ltop--];
+printf("L%d: \n",y);
+}
+
+
+
+lab1_WHILE()
+{
+printf("\n");
+printf("L%d: \n",++lnum);//++lnum OR lnum++
+}
+
+
+lab2_WHILE()
+{
+ strcpy(temp,"t");
+ strcat(temp,i_l);
+ printf("%s = not %s\n",temp,st[top]);
+ printf("if %s goto L%d\n",temp,lnum);
+ i_l[0]++;
+ }
+
+lab3_WHILE()
+{
+printf("goto L%d \n",start);
+printf("L%d: \n",lnum);
+}
+
