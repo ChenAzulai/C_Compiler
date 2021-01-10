@@ -194,8 +194,8 @@ pointerExp: POINTER IDEN {$$=mkNode("^",mkNode($2,NULL,NULL),NULL);}
 	| POINTER OPEN_ROUND mathExp CLOSE_ROUND {$$=mkNode("^",mkNode("(",$3,NULL),mkNode(")",NULL,NULL));};
 
 nestedExp:expr COMMA nestedExp {$$=mkNode("NotEmpty",$1,mkNode(",",$3,NULL));
-printf("  PushParam %s\n",st[top]);} 
-	| expr {$$=mkNode("NotEmpty",$1,NULL);printf("  PushParam %s\n",st[top]);}
+printf("  PushParam %s\n",st[top--]);} 
+	| expr {$$=mkNode("NotEmpty",$1,NULL);printf("  PushParam %s\n",st[top--]);}
 	|{$$=NULL;};
 
 expBody:OPEN_ROUND nestedExp CLOSE_ROUND {$$=$2;}; 
